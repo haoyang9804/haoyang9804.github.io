@@ -16,7 +16,7 @@ jobs:
       - name: build with mkdocs
         run: mkdocs build
       - name: check the site
-        run: ls ./site
+        run: ls ./site 
       - name: config
         run: |
           cd site
