@@ -91,7 +91,7 @@ Models for Finding Compiler Bugs in Simulink [ICSE '20]
 + An Empirical Study of Optimization Bugs in GCC and LLVM [Journal of Systems and Software '21]
 + An Empirical Study on Bugs in Python Interpreters [IEEE Transactions on Reliability '22]
 
-## Program Construction for Testing
+## Program Construction
 
 ### Generation-based
 
@@ -144,22 +144,10 @@ Models for Finding Compiler Bugs in Simulink [ICSE '20]
 + DeepFuzz: Automatic Generation of Syntax Valid C Programs for Fuzz Testing [AAAI '19]
 + DSmith: Compiler Fuzzing through Generative Deep Learning Model with Attention [IJCNN '20]
 
+
+
+
 ## Testing Acceleration 
-
-### Test Program Prioritization
-
-+ Test case prioritization for compilers: A text-vector based approach [ICST '16]
-+ Learning to Prioritize Test Programs for Compiler Testing [ICSE '17]
-+ Learning to Accelerate Compiler Testing [ICSE-Compannion '17]
-+ Coverage Prediction for Accelerating Compiler Testing [TSE '18]
-
-### Test Suite Reduction
-
-+ An intermediate representation approach to reducing test suites for retargeted compilers [Ada-Europe International Conference on Reliable Software Technologies '07]
-+ An automated approach to reducing test suites for testing retargeted C compilers
-for embedded systems [Journal of Systems and Software '11]
-
-## PostTesting && PreDebugging
 
 ### Test Program Reduction
 
@@ -170,10 +158,6 @@ for embedded systems [Journal of Systems and Software '11]
 + Automatic Test Case Reduction for OpenCL [IWOCL '16]
 + Probabilistic Delta Debugging [FSE '21]
 + Test-Case Reduction and Deduplication Almost for Free with Transformation-Based Compiler Testing [PLDI '21]
-
-## Bug Deduplication
-
-+ Taming Compiler Fuzzers [PLDI '13]
 
 ## Test Oracle
 
@@ -216,5 +200,6 @@ Models for Finding Compiler Bugs in Simulink [ICSE '20]
 + Detecting Simulink compiler bugs via controllable zombie blocks mutation [FSE '22]
 + Fuzzing Deep Learning Compilers with HirGen [ISSTA '23]
 
+## Test Program Prioritization
 
-
++ Taming Compiler Fuzzers [PLDI '13]
