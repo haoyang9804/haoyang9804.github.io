@@ -32,7 +32,7 @@ jobs:
           git remote -v
       - name: push gh-pages
         run: |
-          git push origin master:gh-pages
+          git push origin master:gh-pages -f
 #         uses: ad-m/github-push-action@master
 #         with:
 #           repository: haoyang9804/test
