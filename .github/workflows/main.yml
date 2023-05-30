@@ -28,7 +28,7 @@ jobs:
           git commit -m "refresh website"
       - name: set remote repo
         run: |
-          git remote set-url origin https://x-access-token:${{ variables.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io
+          git remote set-url origin https://x-access-token:${{ env.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io
           git remote -v
       - name: push gh-pages
         run: |
