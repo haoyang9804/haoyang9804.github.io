@@ -24,12 +24,8 @@ jobs:
           git init
           git config user.name haoyang9804
           git config user.email haoyanghkust@gmail.com
-          git add . && git commit -m "refresh website"
-          git push https://${{ secrets.MY_GITHUB_TOKEN }}/haoyang9804/haoyang9804.github.io.git -f master:gh-pages
-#       - name: test MY_GITHUB_TOKEN
-#         run: echo ${{ secrets.MY_GITHUB_TOKEN }}
-#       - name: push gh-pages
-#         uses: ad-m/github-push-action@master
-#         with:
-#           github_token: ${{ secrets.MY_GITHUB_TOKEN }}
-#           branch: gh-pages
+      - name: push gh-pages
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.MY_GITHUB_TOKEN }}
+          branch: gh-pages
