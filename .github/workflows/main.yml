@@ -32,9 +32,6 @@ jobs:
           git remote -v
       - name: push gh-pages
         run: |
+          cd site
+          pwd
           git push origin master:gh-pages -f
-#         uses: ad-m/github-push-action@master
-#         with:
-#           repository: haoyang9804/test
-#           github_token: ${{ secrets.MY_GITHUB_TOKEN }}
-#           branch: gh-pages
