@@ -17,13 +17,14 @@ jobs:
         run: mkdocs build
       - name: check the site
         run: ls ./site 
-      - name: config
+      - name: Commit files
         run: |
           cd site
           pwd
           git init
-          git config user.name haoyang9804
-          git config user.email haoyanghkust@gmail.com
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -a -m "Add changes"
       - name: push gh-pages
         uses: ad-m/github-push-action@master
         with:
