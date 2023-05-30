@@ -15,6 +15,8 @@ jobs:
         run: pip install mkdocs
       - name: build with mkdocs
         run: mkdocs build
+      - name: check the site
+        run: ls ./site
       - name: push gh-pages
         working-directory: './site'
         run: |
