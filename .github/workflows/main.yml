@@ -22,10 +22,12 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
-      - name: test MY_GITHUB_TOKEN
-        run: echo ${{ secrets.MY_GITHUB_TOKEN }}
-      - name: push gh-pages
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.MY_GITHUB_TOKEN }}
-          branch: gh-pages
+          git add . && git commit -m "refresh website"
+          git push https://${{ secrets.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io.git 
+#       - name: test MY_GITHUB_TOKEN
+#         run: echo ${{ secrets.MY_GITHUB_TOKEN }}
+#       - name: push gh-pages
+#         uses: ad-m/github-push-action@master
+#         with:
+#           github_token: ${{ secrets.MY_GITHUB_TOKEN }}
+#           branch: gh-pages
