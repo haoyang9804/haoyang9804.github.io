@@ -26,4 +26,4 @@ jobs:
           git remote add origin git@github.com:haoyang9804/haoyang9804.github.io.git
           git add .
           git commit -m "refresh personal website"
-          git push origin gh-pages
+          git push origin master:gh-pages
