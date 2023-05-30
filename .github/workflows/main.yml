@@ -17,13 +17,13 @@ jobs:
         run: mkdocs build
       - name: check the site
         run: ls ./site
-      - name: push gh-pages
+      - name: config
         working-directory: './site'
         run: |
-          git init
-          git config user.name "haoyang9804"
-          git config user.email "haoyanghkust@gmail.com"
-          git remote add origin "https://haoyang9804:${{ secrets.GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io"
-          git add .
-          git commit -m "refresh personal website"
-          git push origin master:gh-pages
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+      - name: push gh-pages
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
