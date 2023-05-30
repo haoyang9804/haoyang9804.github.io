@@ -23,7 +23,7 @@ jobs:
           git init
           git config user.name "haoyang9804"
           git config user.email "haoyanghkust@gmail.com"
-          git remote origin add "https://haoyang9804:${{ secrets.GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io"
+          git remote add origin "https://haoyang9804:${{ secrets.GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io"
           git add .
           git commit -m "refresh personal website"
           git push origin master:gh-pages
