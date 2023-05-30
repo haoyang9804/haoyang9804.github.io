@@ -27,7 +27,7 @@ jobs:
           git add .
           git commit -m "refresh website"
       - name: set remote repo
-        run: 
+        run: |
           git remote set-url origin https://x-access-token:${{ secrets.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io
           git remote -v
       - name: push gh-pages
