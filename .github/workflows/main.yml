@@ -26,16 +26,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add .
           git commit -m "refresh website"
-          git remote add origin https://x-access-token:${{ env.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io
-          git remote -v
-          git push origin master:gh-pages -f
-#       - name: set remote repo
-#         run: |
-#           cd site
-#           pwd
-          
-#       - name: push gh-pages
-#         run: |
-#           cd site
-#           pwd
+          git push https://x-access-token:${{ env.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io master:gh-pages -f
           
