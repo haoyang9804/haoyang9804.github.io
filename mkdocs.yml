@@ -5,7 +5,7 @@ theme:
   custom_dir: 'cinder'
 nav:
   - Home: index.md
-  # - Compiler Correctness: CompilerCorrectness.md
+  - Compiler Correctness: CompilerCorrectness.md
   # - Misc: misc.md
   # - Blog: 
   #   - 2022-10-13: blog/C++ -Memory Management.md
