@@ -18,9 +18,9 @@ jobs:
       - name: push gh-pages
         working-directory: './site'
         run: |
+          git init
           git config user.name "haoyang9804"
           git config user.email "haoyanghkust@gmail.com"
-          git init
           git remote origin add git@github.com:haoyang9804/haoyang9804.github.io.git
           git add .
           git commit -m "refresh personal website"
