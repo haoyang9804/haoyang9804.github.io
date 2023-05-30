@@ -18,8 +18,9 @@ jobs:
       - name: check the site
         run: ls ./site
       - name: config
-        working-directory: './site'
         run: |
+          cd site
+          pwd
           git add . && git commit -m "refresh website"
           git push https://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@github.com/haoyang9804/haoyang9804.github.io.git 
 #       - name: test MY_GITHUB_TOKEN
