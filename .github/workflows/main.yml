@@ -30,7 +30,7 @@ jobs:
         run: |
           cd site
           pwd
-          git remote origin add https://x-access-token:${{ env.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io
+          git remote add origin https://x-access-token:${{ env.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io
           git remote -v
       - name: push gh-pages
         run: |
