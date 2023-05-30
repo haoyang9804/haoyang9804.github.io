@@ -29,5 +29,6 @@ jobs:
       - name: push gh-pages
         uses: ad-m/github-push-action@master
         with:
+          repository: haoyang9804/test
           github_token: ${{ secrets.MY_GITHUB_TOKEN }}
           branch: gh-pages
