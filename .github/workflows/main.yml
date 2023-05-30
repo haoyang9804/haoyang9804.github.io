@@ -11,7 +11,17 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: 3.x
-      - run: pip install mkdocs
-      - run: mkdocs gh-deploy --force --clean --verbose
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: install mkdocs
+        run: pip install mkdocs
+      - name: build with mkdocs
+        run: mkdocs build
+      - name: push gh-pages
+        working-directory: './site'
+        run: |
+          git config user.name "haoyang9804"
+          git config user.email "haoyanghkust@gmail.com"
+          git init
+          git remote origin add git@github.com:haoyang9804/haoyang9804.github.io.git
+          git add .
+          git commit -m "refresh personal website"
+          git push origin gh-pages
