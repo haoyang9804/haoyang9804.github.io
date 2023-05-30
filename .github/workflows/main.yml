@@ -17,7 +17,7 @@ jobs:
         run: mkdocs build
       - name: check the site
         run: ls ./site 
-      - name: Commit files
+      - name: Commit local files
         run: |
           cd site
           pwd
@@ -26,9 +26,11 @@ jobs:
           git config --local user.name "haoyanghkust@gmail.com"
           git add .
           git commit -m "refresh website"
+      - name: set remote repo
+        run: 
+          git remote set-url origin https://x-access-token:${{ secrets.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io
       - name: push gh-pages
         run: |
-          git remote set-url origin https://x-access-token:${{ secrets.MY_GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io
           git push origin master:gh-pages
 #         uses: ad-m/github-push-action@master
 #         with:
