@@ -62,7 +62,9 @@ Before I joined in CASTLE Group, I did research on compiler testing under the gu
 
 ---
 
-+ [ISSTA 2023](https://conf.researchr.org/home/issta-2023) (to appear) **Fuzzing Deep Learning Compilers with HirGen** [preprint](https://arxiv.org/abs/2208.02193)
++ [preprent](https://arxiv.org/abs/2306.06884) **A Survey of Modern Compiler Fuzzing** (In progress)
+
++ [ISSTA 2023](https://conf.researchr.org/home/issta-2023) **Fuzzing Deep Learning Compilers with HirGen** [preprint](https://arxiv.org/abs/2208.02193)
     
     <u>Haoyang Ma</u>, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung*
 
