@@ -9,7 +9,7 @@
 onmouseover="src='me_cyberpunk.jpg'" 
 onmouseout="src='me.jpg'" 
 /> -->
-<img src="Kimburg.jpg", width="250">
+<img src="Kimburg.jpeg", width="250">
 
 <!-- <img src="mepainting1.jpg", width="200"/> -->
 
