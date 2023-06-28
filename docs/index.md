@@ -9,9 +9,7 @@
 onmouseover="src='me_cyberpunk.jpg'" 
 onmouseout="src='me.jpg'" 
 /> -->
-<img src="Kimburg.jpeg", width="250">
-
-<!-- <img src="mepainting1.jpg", width="200"/> -->
+<img src="Shikamaru.jpg", width="250">
 
 <a href="mailto: hmaaj@connect.ust.hk">
     <img src="email.png", width=50>
