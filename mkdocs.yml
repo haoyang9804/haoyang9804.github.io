@@ -9,9 +9,11 @@ nav:
   # - Misc: misc.md
   # - Blog: 
   #   - 2022-10-13: blog/C++ -Memory Management.md
-  #   - 2022-10-29: blog/STLC.md
+    # - 2022-10-29: blog/STLC.md
 # hide:
-#   - Research papers: papers.md
+#   - Research: papers.md
+hide:
+  - STLC: blog/STLC.md
 extra_css: [extra.css]
 google_analytics: ['UA-36723568-3', 'mkdocs.org']
 # theme: 
