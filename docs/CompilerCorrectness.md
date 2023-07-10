@@ -2,7 +2,7 @@
 
 The following list outlines research endeavors focused on maintaining the correctness of modern compilers, primarily covering the following three areas:
 
-+ [Compiler Testing](#compiler-testing)
++ [Compiler Fuzzing](#compiler-fuzzing)
 + [Formal Verification of Realistic Compilers](#formal-verification-of-realistic-compilers)
 + [Translation Validation for Compilers](#translation-validation-for-compilers)
 
@@ -15,119 +15,7 @@ We also provide a [categorization method](#target-compiler-of) based on the supp
 
 ## Compiler Fuzzing
 
-### Studies
 
-+ Compiler Fuzzing: How Much Does It Matter? [OOPSLA '19]
-+ A Survey of Compiler Testing [ACM Computing Surveys '20]
-
-### Program Construction for Fuzzing
-
-#### Generation-based
-
-+ Volatiles are miscompiled, and what to do about it [EMSOFT '08]
-+ Finding and understanding bugs in C compilers [PLDI '11]
-+ Random Testing of C Compilers Targeting Arithmetic Optimization [IPSJ Transactions on System LSI Design Methodology '12]
-+ Fuzzing with Code Fragments [USENIX '12]
-+ Compiler Testing via a Theory of Sound Optimisations in the C11/C++11 Memory Model [PLDI '13]
-+ Many-core compiler fuzzing [PLDI '15]
-+ Automatically Finding Bugs in a Commercial Cyber-Physical System Development Tool Chain With SLforge [ICSE '18]
-+ Random testing for C and C++ compilers with YARPGen [OOPSLA '20]
-+ CUDAsmith: A Fuzzer for CUDA Compilers [COMPSAC '20]
-+ CsmithEdge: more effective compiler testing by handling undefined behaviour less conservatively [Empirical Software Engineering '22]
-+ NNSmith: Generating Diverse and Valid Test Cases for Deep Learning Compilers [ASPLOS '23]
-+ Fuzzing Deep Learning Compilers with HirGen [ISSTA '23]
-
-##### Generation Optimization
-
-+ Swarm Testing [ISSTA '12]
-+ Generating Focused Random Tests Using Directed Swarm Testing [ISSTA '16]
-+ History-Guided Configuration Diversification for Compiler Test-Program Generation [ASE '19]
-+ Boosting Compiler Testing via Compiler Optimization Exploration [TOSEM '22]
-
-#### Transformation-based
-
-##### Semantics-preserving
-
-+ Compiler Validation via Equivalence Modulo Inputs [PLDI '14]
-+ Finding Deep Compiler Bugs via Guided Stochastic Program Mutation [OOPSLA '15]
-+ Many-core compiler fuzzing [PLDI '15]
-+ Finding compiler bugs via live code mutation [OOPSLA '16]
-+ Automated Testing of Graphics Shader Compilers [OOPSLA '17]
-+ SLEMI: Equivalence Modulo Input (EMI) Based Mutation of CPS
-  Models for Finding Compiler Bugs in Simulink [ICSE '20]
-+ CUDAsmith: A Fuzzer for CUDA Compilers [COMPSAC '20]
-+ Test-Case Reduction and Deduplication Almost for Free with Transformation-Based Compiler Testing [PLDI '21]
-+ Metamorphic Testing of Deep Learning Compilers [POMACS '22]
-+ Detecting Simulink compiler bugs via controllable zombie blocks mutation [FSE '22]
-+ Fuzzing Deep Learning Compilers with HirGen [ISSTA '23]
-
-##### Non-semantics-preserving
-
-+ Fuzzing with Code Fragments [USENIX '12]
-+ Reinforcing Random Testing of Arithmetic Optimization of C Compilers by Scaling up Size and Number of Expression [IPSJ Transactions on System LSI Design Methodology '14]
-+ Coverage-Directed Differential Testing of JVM Implementations [PLDI '16]
-+ Automated Testing of Graphics Shader Compilers [OOPSLA '17]
-+ FuzzIL: Coverage guided fuzzing for JavaScript engines [Master’s thesis, Karlsruhe Institute of Technology '18]
-+ CodeAlchemist: Semantics-Aware Code Generation to Find Vulnerabilities in JavaScript Engines [NDSS '19]
-+ Fuzzing JavaScript Engines with Aspect-preserving Mutation [S&P '20]
-+ SoFi: Reflection-Augmented Fuzzing for JavaScript Engines [CCS '21]
-+ JEST: N+1-Version Differential Testing of Both JavaScript Engines and Specification [ICSE '21]
-+ Graph-based fuzz testing for deep learning inference engines [ICSE '21]
-+ History-Driven Test Program Synthesis for JVM Testing [ICSE '22]
-+ Detecting Compiler Warning Defects Via Diversity-Guided Program Mutation [TSE '22]
-+ FUZZILLI: Fuzzing for JavaScript JIT Compiler Vulnerabilities [NDSS '23]
-+ FuzzJIT: Oracle-Enhanced Fuzzing for JavaScript Engine JIT Compiler [USENIX '23]
-
-#### Learning-based
-
-+ Skyfire: Data-Driven Seed Generation for Fuzzing [S&P '17]
-+ Compiler Fuzzing through Deep Learning [ISSTA '18]
-+ DeepFuzz: Automatic Generation of Syntax Valid C Programs for Fuzz Testing [AAAI '19]
-+ DSmith: Compiler Fuzzing through Generative Deep Learning Model with Attention [IJCNN '20]
-+ Montage: A Neural Network Language Model-Guided JavaScript Fuzzer [USENIX '20]
-
-### Test Oracle Design
-
-#### Differential Testing
-
-+ Practical Testing of a C99 Compiler Using Output Comparison [Software—Practice & Experience '07]
-+ Finding and understanding bugs in C compilers [PLDI '11]
-+ Will you still compile me tomorrow? static cross-version compiler validation [FSE '13]
-+ Compiler Testing via a Theory of Sound Optimisations in the C11/C++11 Memory Model [PLDI '13]
-+ Randomized Stress-Testing of Link-Time Optimizers [ISSTA '15]
-+ Many-core compiler fuzzing [PLDI '15]
-+ Practical Validation of Bytecode to Bytecode JIT Compiler Dynamic Deoptimization [The Journal of Object Technology '16]
-+ RandIR: Differential Testing for Embedded Compilers [SCALA '16]
-+ Finding and Analyzing Compiler Warning Defects [ICSE '16]
-+ CyFuzz: A Differential Testing Framework for Cyber-Physical Systems Development Environments [Conference: International Workshop on Design, Modeling, and Evaluation of Cyber Physical Systems '17] 
-+ Random Testing of Compilers’ Performance Based on Mixed Static and Dynamic Code Comparison [A-TEST '18]
-+ Finding missed compiler optimizations by differential testing [CC '18]
-+ SLEMI: Equivalence Modulo Input (EMI) Based Mutation of CPS Models for Finding Compiler Bugs in Simulink [ICSE '20]
-+ Random testing for C and C++ compilers with YARPGen [OOPSLA '20]
-+ CUDAsmith: A Fuzzer for CUDA Compilers [COMPSAC '20]
-+ JEST: N+1-Version Differential Testing of Both JavaScript Engines and Specification [ICSE '21]
-+ CsmithEdge: more effective compiler testing by handling undefined behaviour less conservatively [Empirical Software Engineering '22]
-+ Boosting Compiler Testing via Compiler Optimization Exploration [TOSEM '22]
-+ Enriching Compiler Testing with Real Program from Bug Report [ASE '22]
-+ Detecting Simulink compiler bugs via controllable zombie blocks mutation [FSE '22]
-+ JIT-Picking: Differential Fuzzing of JavaScript Engines [CCS '22]
-+ NNSmith: Generating Diverse and Valid Test Cases for Deep Learning Compilers [ASPLOS '23]
-+ Fuzzing Deep Learning Compilers with HirGen [ISSTA '23]
-+ FuzzJIT: Oracle-Enhanced Fuzzing for JavaScript Engine JIT Compiler [USENIX '23]
-
-#### Metamorphic Testing
-
-+ Compiler Validation via Equivalence Modulo Inputs [PLDI '14]
-+ Finding Deep Compiler Bugs via Guided Stochastic Program Mutation [OOPSLA '15]
-+ Many-core compiler fuzzing [PLDI '15]
-+ Finding compiler bugs via live code mutation [OOPSLA '16]
-+ Automated Testing of Graphics Shader Compilers [OOPSLA '17]
-+ SLEMI: Equivalence Modulo Input (EMI) Based Mutation of CPS Models for Finding Compiler Bugs in Simulink [ICSE '20]
-+ CUDAsmith: A Fuzzer for CUDA Compilers [COMPSAC '20]
-+ An Automatic Testing Approach for Compiler Based on Metamorphic Testing Technique [Asia Pacific Software Engineering Conference '10]
-+ Detecting Simulink compiler bugs via controllable zombie blocks mutation [FSE '22]
-+ Metamorphic Testing of Deep Learning Compilers [POMACS '22]
-+ Fuzzing Deep Learning Compilers with HirGen [ISSTA '23]
 
 ## Formal Verification of Realistic Compilers
 
