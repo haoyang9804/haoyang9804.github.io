@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+
+    
+    <title>C++ -Memory Management - Haoyang Ma's homepage</title>
+    
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css">
+    <link href='//rsms.me/inter/inter.css' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&subset=latin-ext,latin' rel='stylesheet' type='text/css'>
+    <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+    <link href="../../css/base.min.css" rel="stylesheet">
+    <link href="../../css/cinder.min.css" rel="stylesheet">
+
+    
+        
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css">
+        
+    
+    <link href="../../extra.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+
+    
+    <script>
+    (function(i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function() {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+    ga('create', 'UA-36723568-3', 'mkdocs.org');
+    ga('send', 'pageview');
+    </script>
+    
+
+     
+</head>
+
+<body>
+
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+
+            
+              <a class="navbar-brand" href="../..">Haoyang Ma's homepage</a>
+            
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li >
+                        <a href="../..">Home</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../../CompilerCorrectness/">Compiler Correctness</a>
+                    </li>
+                
+                
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+        
+        
+        <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="first-level active"><a href="#c-memory-management">C++ -Memory Management</a></li>
+    </ul>
+</div></div>
+        <div class="col-md-9" role="main">
+
+<h1 id="c-memory-management">C++ -Memory Management</h1>
+<p>I have been bothered with one of the C++ memory management recipe, <code>std::move</code>, for a long time. But these days, I got some inspiration from the language design of Rust for managing memory, with which I try to understand the C++ counterpart.</p>
+<hr />
+<p>Here is a C++ boilerplate code from <a href="https://www.cprogramming.com/c++11/rvalue-references-and-move-semantics-in-c++11.html">here</a> with slight modification.</p>
+<pre><code class="language-c++">class ArrayWrapper
+{
+public:
+    // default constructor produces a moderately sized array
+    ArrayWrapper ()
+        : _p_vals( new int[ 64 ] )
+        , _size( 64 )
+    {}
+
+    ArrayWrapper (int n, string name)
+        : _p_vals( new int[ n ] )
+        , _size( n )
+        , _name(name)
+    {
+    }
+
+    // move constructor
+    ArrayWrapper (ArrayWrapper&amp;&amp; other)
+        : _p_vals( other._p_vals  )
+        , _size( other._size )
+        , _name( other._name )
+    {
+        cout &lt;&lt; &quot;move &quot; &lt;&lt; this-&gt;_name &lt;&lt; endl;
+        other._p_vals = NULL;
+        other._size = 0;
+    }
+
+    // copy constructor
+    ArrayWrapper (const ArrayWrapper&amp; other)
+        : _p_vals( new int[ other._size  ] )
+        , _size( other._size )
+        , _name( other._name )
+    {
+        cout &lt;&lt; &quot;copy &quot; &lt;&lt; this-&gt;_name &lt;&lt; endl;
+        for ( int i = 0; i &lt; _size; ++i )
+        {
+            _p_vals[ i ] = other._p_vals[ i ];
+        }
+    }
+
+    ~ArrayWrapper ()
+    {
+        cout &lt;&lt; &quot;delete &quot; &lt;&lt; this-&gt;_name &lt;&lt; endl;
+        delete [] _p_vals;
+    }
+
+    const int&amp; size_() {
+      return this-&gt;_size;
+    }
+
+    void rename(string name) {
+      this-&gt;_name = name;
+    }
+
+private:
+    int *_p_vals;
+    int _size;
+    string _name;
+};
+</code></pre>
+<p>To test the copy constructor, I write the following code, which is the one I always wrote before.</p>
+<pre><code class="language-c++">int main() {
+  ArrayWrapper aw1(12, &quot;aw1&quot;);
+  ArrayWrapper aw2(aw1); aw2.rename(&quot;aw2&quot;);
+}
+</code></pre>
+<p>The output is trivial and intuitive:</p>
+<pre><code>copy aw1
+delete aw2
+delete aw1
+</code></pre>
+<p><code>ArrayWrapper aw3(aw1)</code> invokes the copy constructor and thus prints <code>copy aw1</code> on terminal.</p>
+<p>The introduction of <code>std::move</code> here would invoke the move instructor. To prove it, I rewrite the <code>main</code> function:</p>
+<pre><code class="language-c++">int main() {
+  ArrayWrapper aw1(12, &quot;aw1&quot;);
+  ArrayWrapper aw2(aw1); aw2.rename(&quot;aw2&quot;);
+  ArrayWrapper aw3(std::move(aw1)); aw3.rename(&quot;aw3&quot;);
+}
+</code></pre>
+<p>The output shows that the move constructor has been invoked.</p>
+<pre><code>copy aw1
+move aw1
+delete aw3
+delete aw2
+delete aw1
+</code></pre>
+<p>One observation is in our move constructor, the re-assignment of the rvalue-reference is important to promise no memory problem in execution.</p>
+<pre><code class="language-c++">// move constructor
+    ArrayWrapper (ArrayWrapper&amp;&amp; other)
+        : _p_vals( other._p_vals  )
+        , _size( other._size )
+        , _name( other._name )
+    {
+        cout &lt;&lt; &quot;move &quot; &lt;&lt; this-&gt;_name &lt;&lt; endl;
+        other._p_vals = NULL;
+        other._size = 0;
+    }
+</code></pre>
+<p>If I comment out</p>
+<pre><code class="language-c++">other._p_vals = NULL;
+other._size = 0;
+</code></pre>
+<p>, then the process of deleting <code>aw</code> by destructor will cause a malloc fault in execution. This is because the content owned by <code>aw1</code> has been moved to <code>aw3</code>, and thus destruct <code>aw1</code> will try to release some unknown memory.</p>
+<hr />
+<p>In continuing with this trivial experiment, I also encountered <strong>R</strong>eturn <strong>V</strong>alue <strong>O</strong>ptimization.</p>
+<p>Concretely speaking, I add a new function to return a <code>ArrayWrapper</code> instance immediately after creating it.</p>
+<pre><code class="language-c++">ArrayWrapper createAW_() {
+  ArrayWrapper aw_3(15, &quot;aw_3&quot;);
+  return aw_3;  
+}
+</code></pre>
+<p>And I call it in <code>main</code> function to expect for an invokation of move constructor. But sadly, I failed.</p>
+<pre><code class="language-c++">ArrayWrapper aw4(createAW_()); aw4.rename(&quot;aw4&quot;);
+</code></pre>
+<p>The output is <code>delete aw4</code>, but without printing <code>move aw4</code>. This is because the compiler implicitly optimizes it at compile time (RVO).</p>
+<p>But what if the compiler has no idea how to optimize it at compile time?</p>
+<p>I rewrite <code>createAW_</code> by adding an <code>if</code> statement to complicate the control flow. This modification requires knowledge of the value of <code>x</code> during runtime to do code analysis and then optimization. The code is as below:</p>
+<pre><code class="language-c++">ArrayWrapper createAW(int x) {
+  ArrayWrapper aw_1(x, &quot;aw_1&quot;);
+  ArrayWrapper aw_2(13, &quot;aw_2&quot;);
+  if (aw_1.size_() &gt; aw_2.size_())
+    return aw_1;
+  return aw_2;
+}
+</code></pre>
+<p>And I add a new <code>ArrayWrapper</code> instance in <code>main</code> function:</p>
+<pre><code class="language-c++">ArrayWrapper aw5(createAW(12)); aw5.rename(&quot;aw5&quot;);
+</code></pre>
+<p>The output shows that move constructor has been invoked again:</p>
+<pre><code>move aw_2
+delete aw_2
+delete aw_1
+delete aw5
+</code></pre></div>
+        
+        
+    </div>
+
+    
+      <footer class="col-md-12 text-center">
+          
+          
+            <hr>
+            <p>
+            <small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+            </p>
+          
+
+          
+          
+      </footer>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../../js/bootstrap-3.0.3.min.js"></script>
+
+    
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+        
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    <script>var base_url = "../.."</script>
+    
+    <script src="../../js/base.js"></script>
+
+    <div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+
+</html>

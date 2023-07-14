@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    
+    <link rel="shortcut icon" href="../../img/favicon.ico">
+
+    
+    <title>A simple formal proof for Typed Arithmetic Expressions in TAPL - Haoyang Ma's homepage</title>
+    
+
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/v4-shims.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack.min.css">
+    <link href='//rsms.me/inter/inter.css' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,700italic,400,300,600,700&subset=latin-ext,latin' rel='stylesheet' type='text/css'>
+    <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+    <link href="../../css/base.min.css" rel="stylesheet">
+    <link href="../../css/cinder.min.css" rel="stylesheet">
+
+    
+        
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/styles/github.min.css">
+        
+    
+    <link href="../../extra.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+            <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+
+    
+    <script>
+    (function(i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function() {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+    ga('create', 'UA-36723568-3', 'mkdocs.org');
+    ga('send', 'pageview');
+    </script>
+    
+
+     
+</head>
+
+<body>
+
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+
+            
+              <a class="navbar-brand" href="../..">Haoyang Ma's homepage</a>
+            
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li >
+                        <a href="../..">Home</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../../CompilerCorrectness/">Compiler Correctness</a>
+                    </li>
+                
+                
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+        
+        
+        <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="first-level active"><a href="#a-simple-formal-proof-for-typed-arithmetic-expressions-in-tapl">A simple formal proof for Typed Arithmetic Expressions in TAPL</a></li>
+    </ul>
+</div></div>
+        <div class="col-md-9" role="main">
+
+<h1 id="a-simple-formal-proof-for-typed-arithmetic-expressions-in-tapl">A simple formal proof for Typed Arithmetic Expressions in TAPL</h1>
+<p>I read <strong>Types and Programming Languages</strong> (TAPL) these days and was deeply impressed by the beauty of
+programming language. To practice proofs related to programming language theory and use of the Coq language, I formalize the following syntax and semantics in Coq and prove <strong>Progress</strong> and <strong>Preservation</strong> theory.</p>
+<p><img alt="" src="../pic/TAPL-Figure-3_1.png" />
+<img alt="" src="../pic/TAPL-Figure-3_2.png" />
+<img alt="" src="../pic/TAPL-Figure-8_1.png" />
+<img alt="" src="../pic/TAPL-Figure-8_2.png" />
+<img alt="" src="../pic/TAPL_Theorem_Preservation.png" />
+<img alt="" src="../pic/TAPL_Theorem_Progress.png" /></p>
+<p>And here is the Coq code.</p>
+<pre><code class="language-Coq">Inductive type : Type :=
+  | B (*boolean*)
+  | N (*nat*)
+  .
+
+Inductive term : Type :=
+  | boolean (b : bool)
+  | if_then_else (t1 t2 t3 : term) (* if t1 then t2 else t3 *)
+  | zero
+  | succ (t: term) 
+  | iszero (t : term)
+  | pred (t : term).
+
+(* number value *)
+Inductive nvalue : term -&gt; Prop :=
+  | NZero : nvalue zero
+  | NSucc : forall (t:term), nvalue t -&gt; nvalue (succ t).
+
+Inductive value : term -&gt; Prop :=
+  | BValue : forall (t : term) (b : bool), t = boolean b -&gt; value t
+  | NValue : forall (t : term), nvalue t -&gt; value t.
+
+Inductive evaluate : term -&gt; term -&gt; Prop :=
+  | E_SUCC :
+    forall (t1 t2 : term),
+    evaluate t1 t2 -&gt;
+    evaluate (succ t1) (succ t2)
+  | E_PREDZERO :
+    evaluate (pred zero) zero
+  | E_PREDSUCC :
+    forall (t : term),
+    nvalue t -&gt;
+    evaluate (pred (succ t)) t
+  | E_PRED :
+    forall (t1 t2 : term),
+    evaluate t1 t2 -&gt;
+    evaluate (pred t1) (pred t2)
+  | E_ISZEROZERO :
+    evaluate (iszero zero) (boolean true)
+  | E_ISZEROSUCC :
+    forall (t : term),
+    nvalue t -&gt;
+    evaluate (iszero (succ t)) (boolean false)
+  | E_ISZERO :
+    forall (t1 t2 : term),
+    evaluate t1 t2 -&gt;
+    evaluate (iszero t1) (iszero t2)
+  | E_IFTRUE :
+    forall (t2 t3 : term),
+    evaluate (if_then_else (boolean true) t2 t3) t2
+  | E_IFFALSE :
+    forall (t2 t3 : term),
+    evaluate (if_then_else (boolean false) t2 t3) t3
+  | E_IF :
+    forall (t1 t2 t3 t1' : term),
+    evaluate t1 t1' -&gt;
+    evaluate (if_then_else t1 t2 t3) (if_then_else t1' t2 t3).
+
+Notation &quot;x \-&gt; y&quot; := (evaluate x y) (at level 50, left associativity).
+
+
+Inductive typeCheck : term -&gt; type -&gt; Prop :=
+  | CheckTrue : typeCheck (boolean true) B
+  | CheckFalse : typeCheck (boolean false) B
+  | CheckIf (T:type) (t1 t2 t3 : term):
+    typeCheck t1 B -&gt;
+    typeCheck t2 T -&gt;
+    typeCheck t3 T -&gt;
+    typeCheck (if_then_else t1 t2 t3) T
+  | CheckZero : typeCheck zero N
+  | CheckSucc :
+    forall (t:term),
+    typeCheck t N -&gt;
+    typeCheck (succ t) N
+  | CheckPred :
+    forall (t:term),
+    typeCheck t N -&gt;
+    typeCheck (pred t) N
+  | CheckIszero :
+    forall (t:term),
+    typeCheck t N -&gt;
+    typeCheck (iszero t) B.
+
+Notation &quot;t :: T&quot; := (typeCheck t T).
+
+(* A trick here *)
+Lemma typeCheck_number_is_not_B:
+forall t, nvalue t -&gt; t :: B -&gt; False.
+Proof.
+  intros. 
+  induction H; inversion H0. 
+Qed.
+
+(** [Canonical Form (Page 127) (1)] If [v] is a value of type [Bool],
+then [v] is either [true] or [false]*)
+Lemma boolvalue_only_contains_true_or_false :
+forall (t:term), value t -&gt; t :: B -&gt; t = boolean true \/ t = boolean false.
+Proof.
+  intros. remember t as t'. remember B as T. induction H0.
+  - left. reflexivity.
+  - right. reflexivity.
+  - inversion H. discriminate. inversion H0.
+  - discriminate.
+  - discriminate.
+  - discriminate.
+  - inversion H.
+    + discriminate.
+    + inversion H1. 
+Qed.
+
+(* (** [Canonical Form (Page 128) (2)] If [v] is a value of type [Nat],
+then [v] is a [number]*)
+Lemma numvalue_only_contains_zero_or_succ :
+forall (t:term), nvalue t -&gt; t = zero \/ exists (t' : term), nvalue t' -&gt; 
+Proof.
+  intros. remember N as type_. induction H0; try discriminate.
+  - remember (if_then_else t1 t2 t3) as ifH. destruct H; rewrite HeqifH in H;
+    discriminate.
+  - exists zero; reflexivity.
+  - exists (succ n); reflexivity.
+  - remember (pred t) as predn.
+    destruct H eqn:E.
+    + rewrite e in Heqpredn; discriminate.
+    + rewrite e. exists n; reflexivity. 
+Qed. *)
+
+
+(* [exists (tp : type), typeCheck t tp] means term [t] is well-typed *)
+Theorem Progress : forall (t:term), (exists (tp : type), t :: tp) -&gt; 
+  value t \/ (exists (t':term), t \-&gt; t').
+Proof. 
+  intros. destruct H. 
+  induction H.
+  - left. apply BValue with (b:=true). reflexivity.
+  - left. apply BValue with (b:=false). reflexivity.
+  - right.  
+    destruct IHtypeCheck1.
+    + inversion H2.
+      -- destruct b; rewrite H3.
+         ++ exists t2. apply E_IFTRUE.
+         ++ exists t3. apply E_IFFALSE.
+      -- inversion H3; inversion H.
+         ++ rewrite &lt;- H5 in H6; discriminate.
+         ++ rewrite &lt;- H5 in H6; discriminate.
+         ++ rewrite &lt;- H5 in H9; discriminate.
+         ++ rewrite &lt;- H5 in H7; discriminate.
+         ++ rewrite &lt;- H6 in H7; discriminate.
+         ++ rewrite &lt;- H6 in H7; discriminate.
+         ++ rewrite &lt;- H6 in H10; discriminate.
+         ++ rewrite &lt;- H6 in H8; discriminate.
+    + destruct H2.
+      exists (if_then_else x t2 t3).
+      apply E_IF.
+      apply H2.
+  - left. apply NValue. apply NZero.
+  - destruct IHtypeCheck.
+    + left. apply NValue. inversion H0.
+      -- rewrite H1 in H. inversion H.
+      -- apply NSucc. apply H1.
+    + destruct H0.
+      right. exists (succ x).
+      apply E_SUCC. apply H0.
+  - right.
+    destruct IHtypeCheck.
+    + inversion H0.
+      -- rewrite H1 in H. inversion H.
+      -- destruct H1.
+         ++ exists zero. apply E_PREDZERO.
+         ++ exists t. apply E_PREDSUCC. apply H1.
+    + destruct H0.
+      exists (pred x).
+      apply E_PRED.
+      apply H0.
+  - right. destruct IHtypeCheck.
+    + inversion H0.
+      -- rewrite H1 in H. inversion H.
+      -- destruct H1.
+         ++ exists (boolean true). apply E_ISZEROZERO.
+         ++ exists (boolean false). apply E_ISZEROSUCC. apply H1.
+    + destruct H0.
+      exists (iszero x).
+      apply E_ISZERO.
+      apply H0.
+Qed. 
+
+Axiom pred_succ_is_itself:
+forall (t:term), pred (succ t) = t.
+
+Lemma succ_t_is_of_N_then_t_is_also_of_N :
+forall (t:term), succ t :: N -&gt; t :: N.
+Proof.
+  intros.
+  inversion H.
+  apply H1.
+Qed.
+
+(** If [t] : [T] and [t] -&gt; [t'], then [t'] : [T]*)
+Theorem Preservation :
+forall (t t':term) (T:type), t :: T -&gt; (t \-&gt; t') -&gt; t' :: T.
+Proof. (* induction on type system , could also do induction on evaluation*)
+  intros.
+  generalize dependent t'.
+   induction H; intros.
+  - inversion H0. (* cannot evaluate (boolean true)*)
+  - inversion H0. (* cannot evaluate (boolean false)*)
+  - remember B as B'. destruct H.
+    + inversion H2.
+      -- rewrite &lt;- H5. apply H0.
+      -- inversion H6.
+    + inversion H2.
+      -- rewrite &lt;- H5. apply H1.
+      -- inversion H6.
+    + rewrite HeqB' in H3;
+      rewrite HeqB' in H4;
+      rewrite HeqB' in IHtypeCheck1.
+      clear HeqB'.
+      inversion H2.
+      apply CheckIf.
+      -- apply IHtypeCheck1 in H9. apply H9. (* auto *)
+      -- apply H0.
+      -- apply H1.
+    + discriminate.
+    + discriminate.
+    + discriminate.
+    + inversion H2. apply CheckIf.
+      -- auto.
+      -- apply H0.
+      -- apply H1.
+  - inversion H0.
+  - inversion H0; clear H1.
+    apply IHtypeCheck in H2. apply CheckSucc. apply H2.
+  - inversion H0.
+    + apply CheckZero.
+    + rewrite &lt;- H1 in H; rewrite &lt;- H3.
+      apply succ_t_is_of_N_then_t_is_also_of_N in H. apply H.
+    + apply IHtypeCheck in H2. apply CheckPred. apply H2.
+  - inversion H0.
+    + apply CheckTrue.
+    + apply CheckFalse.
+    + apply IHtypeCheck in H2. apply CheckIszero. apply H2.             
+Qed.
+</code></pre>
+<p>To better play with TAPL, I also collect several repos for implementing the theory in this book in <a href="https://github.com/haoyang9804/TAPL-all">Github</a>.</p></div>
+        
+        
+    </div>
+
+    
+      <footer class="col-md-12 text-center">
+          
+          
+            <hr>
+            <p>
+            <small>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</small>
+            </p>
+          
+
+          
+          
+      </footer>
+    
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="../../js/bootstrap-3.0.3.min.js"></script>
+
+    
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.0/build/highlight.min.js"></script>
+        
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    <script>var base_url = "../.."</script>
+    
+    <script src="../../js/base.js"></script>
+
+    <div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+
+</html>
