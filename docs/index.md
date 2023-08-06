@@ -1,32 +1,16 @@
 <script type="text/javascript"
   src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
-# MA, Haoyang(马昊阳)
+# Haoyang Ma(马昊阳)
 
-<!-- <img src = "me.jpg" width = "500"> -->
-
-<!-- <img src="me.jpg" width="400" 
-onmouseover="src='me_cyberpunk.jpg'" 
-onmouseout="src='me.jpg'" 
-/> -->
 <img src="me.jpg", width="250">
 
-<a href="mailto: hmaaj@connect.ust.hk">
-    <img src="email.png", width=50>
-</a>
-<a href="https://github.com/haoyang9804">
-    <img src="GitHub.png", width=50>
-</a>
-<a href="https://www.linkedin.com/in/haoyang-ma-a870b01b6/">
-    <img src="linkedin.png", width=50>
-</a>
-<a href="https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en">
-    <img src="google-scholar--v2.png", width=50>
-</a>
+[:material-email-search-outline:](mailto:hmaaj@connect.ust.hk)
+[:simple-github:](https://github.com/haoyang9804)
+[:fontawesome-brands-twitter:{ .twitter }](https://twitter.com/Haoyang9804)
+[:simple-linkedin:](https://www.linkedin.com/in/haoyang-ma-a870b01b6/)
+[:simple-googlescholar:](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en)
 
-<!-- [Google Scholar](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en)  -->
-
-<!-- [Github](https://github.com/haoyang9804) -->
 
 ## About Me
 
@@ -62,7 +46,7 @@ Before I joined in CASTLE Group, I did research on compiler testing under the gu
 
 + [preprent](https://arxiv.org/abs/2306.06884) **A Survey of Modern Compiler Fuzzing** (In progress)
 
-+ [ISSTA 2023](https://conf.researchr.org/home/issta-2023) **Fuzzing Deep Learning Compilers with HirGen** [\[paper\]](https://arxiv.org/abs/2208.02193) [\[project\]](https://github.com/haoyang9804/HirGen) [\[artifact\]](https://doi.org/10.5281/zenodo.7905120)
++ [ISSTA 2023](https://conf.researchr.org/home/issta-2023) **Fuzzing Deep Learning Compilers with HirGen** [\[paper\]](hirgen.pdf) [\[project\]](https://github.com/haoyang9804/HirGen) [\[artifact\]](https://doi.org/10.5281/zenodo.7905120)
     
     <u>Haoyang Ma</u>, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung*
 
