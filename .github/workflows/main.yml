@@ -13,6 +13,8 @@ jobs:
           python-version: 3.x
       - name: install mkdocs
         run: pip install mkdocs-material
+      - name: install mermaid
+        run: pip install mkdocs-mermaid2-plugin
       - name: build with mkdocs
         run: mkdocs build
       - name: check the site
