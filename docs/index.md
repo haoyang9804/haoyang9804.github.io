@@ -1,9 +1,6 @@
-<script type="text/javascript"
-  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-</script>
 # Haoyang Ma(马昊阳)
 
-<img src="me.jpg", width="250">
+<img src="photos/2023-8-5.jpg", width="300">
 
 [:material-email-search-outline:](mailto:hmaaj@connect.ust.hk)
 [:simple-github:](https://github.com/haoyang9804)
@@ -46,17 +43,17 @@ Before I joined in CASTLE Group, I did research on compiler testing under the gu
 
 + [preprent](https://arxiv.org/abs/2306.06884) **A Survey of Modern Compiler Fuzzing** (In progress)
 
-+ [ISSTA 2023](https://conf.researchr.org/home/issta-2023) **Fuzzing Deep Learning Compilers with HirGen** [\[paper\]](hirgen.pdf) [\[project\]](https://github.com/haoyang9804/HirGen) [\[artifact\]](https://doi.org/10.5281/zenodo.7905120)
++ [ISSTA 2023](https://conf.researchr.org/home/issta-2023) **Fuzzing Deep Learning Compilers with HirGen** [\[paper\]](papers/hirgen.pdf) [\[project\]](https://github.com/haoyang9804/HirGen) [\[artifact\]](https://doi.org/10.5281/zenodo.7905120)
     
     <u>Haoyang Ma</u>, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung*
 
-+ [FSE 2021](https://2021.esec-fse.org) **A Comprehensive Study of Deep Learning Compiler Bugs** [\[paper\]](A_Comprehensive_Study_of_Deep_Learning_Compiler_Bugs.pdf) [\[project\]](https://github.com/ShenQingchao/DLCstudy)
++ [FSE 2021](https://2021.esec-fse.org) **A Comprehensive Study of Deep Learning Compiler Bugs** [\[paper\]](papers/A_Comprehensive_Study_of_Deep_Learning_Compiler_Bugs.pdf) [\[project\]](https://github.com/ShenQingchao/DLCstudy)
 
     Qingchao Shen, <u>Haoyang Ma</u>, Junjie Chen*, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen
 
     <!-- *acceptance rate*: 24.5% (97 of 396) -->
 
-+ [ASE 2020](https://conf.researchr.org/home/ase-2020) **Enhanced compiler bug isolation via memoized search** [\[paper\]](ASE_20__Reinforcement_Compiler_Bug_Isolation.pdf) [\[project\]](https://github.com/haoyang9804/RecBi)
++ [ASE 2020](https://conf.researchr.org/home/ase-2020) **Enhanced compiler bug isolation via memoized search** [\[paper\]](papers/ASE_20__Reinforcement_Compiler_Bug_Isolation.pdf) [\[project\]](https://github.com/haoyang9804/RecBi)
 
     Junjie Chen\*#, <u>Haoyang Ma</u>#  , Lingming Zhang
 
