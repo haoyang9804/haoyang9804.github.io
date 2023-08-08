@@ -4,7 +4,6 @@
 
 [:material-email-search-outline:](mailto:hmaaj@connect.ust.hk)
 [:simple-github:](https://github.com/haoyang9804)
-[:fontawesome-brands-twitter:{ .twitter }](https://twitter.com/Haoyang9804)
 [:simple-linkedin:](https://www.linkedin.com/in/haoyang-ma-a870b01b6/)
 [:simple-googlescholar:](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en)
 
