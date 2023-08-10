@@ -1,6 +1,6 @@
 # Haoyang Ma(马昊阳)
 
-<img src="photos/2023-8-5.jpg", width="300">
+<img src="photos/deer.png", width="400">
 
 [:material-email-search-outline:](mailto:hmaaj@connect.ust.hk)
 [:simple-github:](https://github.com/haoyang9804)
