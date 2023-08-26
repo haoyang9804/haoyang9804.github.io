@@ -11,7 +11,7 @@
 ## About Me
 
 ---
-I'm a PhD candidate at the Department of Computer Science and Engineering at HKUST, supervised by Prof. [Shing-Chi Cheung](https://www.cse.ust.hk/~scc/). I'm now a member of the [CASTLE Group](http://castle.cse.ust.hk/castle/index.html). My research topic mainly fouses on ***Compiler Fuzzing***. I have also participated in research works about ***Bug Isolation***. I am also interested in ***Compiler Verification*** and ***Compiler Translation Validation***. Besides research, I love coding, such as designing and implementing a compiler or [verifying](blog/STLC.md) a simple type system. 
+I'm a PhD candidate at the Department of Computer Science and Engineering at HKUST, supervised by Prof. [Shing-Chi Cheung](https://www.cse.ust.hk/~scc/). I'm now a member of the [CASTLE Group](http://castle.cse.ust.hk/castle/index.html). My research topic mainly fouses on ***Compiler Fuzzing***. I have also participated in research works about ***Bug Isolation***. I am also interested in ***Compiler Verification*** and ***Compiler Translation Validation***. Besides research, I love engineering work, such as designing and implementing a compiler, [verifying](blog/STLC.md) a simple type system, or help maintain open-source software, such as [TVM](https://tvm.apache.org/).
 
 Before I joined in CASTLE Group, I did research on compiler testing under the guidance of Prof. [Junjie Chen](https://sites.google.com/site/junjiechen08/) for more than one year when I was an undergraduate at Tianjin University.
 
