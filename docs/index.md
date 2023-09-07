@@ -11,13 +11,20 @@
 ## About Me
 
 ---
-I'm a PhD candidate at the Department of Computer Science and Engineering at HKUST, supervised by Prof. [Shing-Chi Cheung](https://www.cse.ust.hk/~scc/). I'm now a member of the [CASTLE Group](http://castle.cse.ust.hk/castle/index.html). My research topic mainly fouses on ***Compiler Fuzzing***. I have also participated in research works about ***Bug Isolation***. I am also interested in ***Compiler Verification*** and ***Compiler Translation Validation***. Besides research, I love engineering work, such as designing and implementing a compiler, [verifying](blog/STLC.md) a simple type system, or helping maintain open-source software.
-These days, I'm actively fixing bugs in [TVM frontend](https://github.com/apache/tvm/pulls?q=is%3Apr+author%3Ahaoyang9804).
+I'm a PhD candidate at the Department of Computer Science and Engineering at HKUST, supervised by Prof. [Shing-Chi Cheung](https://www.cse.ust.hk/~scc/). I'm now a member of the [CASTLE Group](http://castle.cse.ust.hk/castle/index.html). Before I joined in CASTLE Group, I did research on compiler bug isolation under the guidance of Prof. [Junjie Chen](https://sites.google.com/site/junjiechen08/) for more than one year when I was an undergraduate at Tianjin University.
 
-Before I joined in CASTLE Group, I did research on compiler testing under the guidance of Prof. [Junjie Chen](https://sites.google.com/site/junjiechen08/) for more than one year when I was an undergraduate at Tianjin University.
+I'm enthusiastic in **building robust software systems**.
+On the way to achieving this goal, I have engaged into research topics including
 
++ **Bug Study**: *how to understand and categorize oceans of bugs*
++ **Bug Isolation**: *how to locate bugs*
++ **Fuzzing**: *how to detect bugs efficiently*
++ **Program Generation**: *how to generate valid test programs*
 
-<!-- <u> BTW, my English name is drawn from my favoriate football coach [Jürgen Klopp](kloppp.png). </u> -->
+I'm also interested in leveraging <u>*translation validation*</u> and <u>*metamorphic relation construction*</u> to **validate** software systems.
+
+As for engineering, I have been actively testing and helping maintain compilers for a while. These days, I'm helping fix [TVM frontend bugs](https://github.com/apache/tvm/pulls?q=is%3Apr+author%3Ahaoyang9804).
+
 
 ## Education
 
@@ -71,14 +78,20 @@ Before I joined in CASTLE Group, I did research on compiler testing under the gu
 
 I was the TA of 
 
-+ COMP 3111 Software Engineering (Spring 2021-22).
++ COMP 3111 Software Engineering (Spring 2021-22)
 + COMP 2011 Programming With C++ (Fall 2022-23)
+
+I'm now to TA of
+
++ COMP 1021 Introduction to Computer Science (Fall 2023-2024)
 
 ## Services
 
 ---
 
-Have participated in (co-)reviewing paper(s) in ISSTA 2021, ISSTA 2023.
+Have participated in coreviewing paper(s) in ISSTA 2021, ISSTA 2023.
+
+Have served as the reviewer for a TSE paper.
 
 ## Talks
 
