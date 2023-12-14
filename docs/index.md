@@ -1,19 +1,34 @@
-# Haoyang Ma(马昊阳)
+<!-- # Haoyang Ma(马昊阳) -->
 
-<img src="photos/deer.png", width="400">
+<!-- <img src="play/me.jpg", width="400"> -->
 
-[:material-email-search-outline:](mailto:hmaaj@connect.ust.hk)
+<!-- [:material-email-search-outline:](mailto:hmaaj@connect.ust.hk)
 [:simple-github:](https://github.com/haoyang9804)
-[:simple-linkedin:](https://www.linkedin.com/in/haoyang-ma-a870b01b6/)
-[:simple-googlescholar:](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en)
+[:simple-linkedin:](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) -->
+<!-- [:simple-googlescholar:](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en) -->
 
 
-## About Me
+This is Haoyang Ma (马昊阳).
 
----
-I'm a PhD candidate at the Department of Computer Science and Engineering at HKUST, supervised by Prof. [Shing-Chi Cheung](https://www.cse.ust.hk/~scc/). I'm now a member of the [CASTLE Group](http://castle.cse.ust.hk/castle/index.html). Before I joined in CASTLE Group, I did research on compiler bug isolation under the guidance of Prof. [Junjie Chen](https://sites.google.com/site/junjiechen08/) for more than one year when I was an undergraduate at Tianjin University.
+A PhD candidate at the Department of Computer Science and Engineering at HKUST.
 
-I'm enthusiastic in **building robust software systems**.
+I'd love to hunt bugs in open-source software, contribute code to AI frameworks and compilers, and study high-performance computing.
+
+I write [blogs](blog/blog) sometimes.
+
+Besides these hobbies that help me survive, 
+I also enjoy music programming and digital painting but I'm still at infant stage. Here are some of my [paintings](play/play).
+
+You can know more about me through my [resume](./resume.pdf),
+find me at [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) and [GitHub](https://github.com/haoyang9804), or contract me through email: haoyang.ma AT connect.ust.hk.
+
+ 
+
+
+
+<!-- , supervised by Prof. [Shing-Chi Cheung](https://www.cse.ust.hk/~scc/). I'm now a member of the [CASTLE Group](http://castle.cse.ust.hk/castle/index.html). Before I joined in CASTLE Group, I did research on compiler bug isolation under the guidance of Prof. [Junjie Chen](https://sites.google.com/site/junjiechen08/) for more than one year when I was an undergraduate at Tianjin University. -->
+
+<!-- I'm enthusiastic in **building robust software systems**.
 On the way to achieving this goal, I have engaged into research topics including
 
 + **Bug Study**: *how to understand and categorize oceans of bugs*
@@ -23,10 +38,10 @@ On the way to achieving this goal, I have engaged into research topics including
 
 I'm also interested in leveraging <u>*translation validation*</u> and <u>*metamorphic relation construction*</u> to **validate** software systems.
 
-As for engineering, I have been actively testing and helping maintain compilers for a while. These days, I'm helping fix [TVM frontend bugs](https://github.com/apache/tvm/pulls?q=is%3Apr+author%3Ahaoyang9804).
+As for engineering, I have been actively testing and helping maintain compilers for a while. These days, I'm helping fix [TVM frontend bugs](https://github.com/apache/tvm/pulls?q=is%3Apr+author%3Ahaoyang9804). -->
 
 
-## Education
+<!-- ## Education
 
 ---
 
@@ -40,9 +55,9 @@ As for engineering, I have been actively testing and helping maintain compilers 
   
     B.Eng. in Software Engineering
   
-    Aug. 2016 ~ Jul. 2020
+    Aug. 2016 ~ Jul. 2020 -->
 
-## Publications
+<!-- ## Publications
 
 > <i><u>\* denotes corresponding author, # denotes equal contribution</u></i>
 
@@ -58,15 +73,13 @@ As for engineering, I have been actively testing and helping maintain compilers 
 
     Qingchao Shen, <u>Haoyang Ma</u>, Junjie Chen*, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen
 
-    <!-- *acceptance rate*: 24.5% (97 of 396) -->
 
 + [ASE 2020](https://conf.researchr.org/home/ase-2020) **Enhanced compiler bug isolation via memoized search** [\[paper\]](papers/ASE_20__Reinforcement_Compiler_Bug_Isolation.pdf) [\[project\]](https://github.com/haoyang9804/RecBi)
 
-    Junjie Chen\*#, <u>Haoyang Ma</u>#  , Lingming Zhang
+    Junjie Chen\*#, <u>Haoyang Ma</u>#  , Lingming Zhang -->
 
-    <!-- *acceptance rate*: 22.5% (93 of 408) -->
 
-## Honors and Awards
+<!-- ## Honors and Awards
 
 ---
 
@@ -102,4 +115,4 @@ Have served as the reviewer for a TSE paper.
 ### Fuzzing Deep Learning Compilers with HirGen
 
 + [SEPL Seminar](https://sepl-hkust.github.io/) on 14 Jul 2023
-+ [ISSTA Conference Talk](https://conf.researchr.org/home/issta-2023) on Jul 19 2023
++ [ISSTA Conference Talk](https://conf.researchr.org/home/issta-2023) on Jul 19 2023 -->

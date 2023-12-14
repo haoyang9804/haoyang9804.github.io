@@ -1,22 +1,25 @@
 plugins: []
 site_name: Haoyang Ma's homepage
 theme:
-  name: material
+  # name: material
+  name: terminal
 # theme: 
 #   name: null
 #   custom_dir: 'cinder'
 nav:
   - Home: index.md
-  - Compiler Correctness: CompilerCorrectness.md
+  # - Compiler Correctness: CompilerCorrectness.md
   # - Misc: misc.md
   # - Blog: 
   #   - 2022-10-13: blog/C++ -Memory Management.md
-    # - 2022-10-29: blog/STLC.md
+  #   - 2022-10-29: blog/STLC.md
 # hide:
 #   - Research: papers.md
 hide:
-  - STLC: blog/STLC.md
-
+  - Blog: blog/blog.md
+    # - blog/CompilerCorrectness.md
+    # - blog/STLC.md
+  - Paitings: play/play.md
 
 markdown_extensions:
   - pymdownx.superfences:
