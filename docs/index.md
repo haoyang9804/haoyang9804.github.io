@@ -17,7 +17,8 @@ I'd love to hunt bugs in open-source software, contribute code to AI frameworks 
 I write [blogs](blog/blog) sometimes.
 
 Besides these hobbies that help me survive, 
-I also enjoy music programming and digital painting but I'm still at infant stage. Here are some of my [paintings](play/play).
+I also enjoy music programming, [digital painting](play/paintings), and [in-game photography](play/games).
+
 
 You can know more about me through my [resume](./resume.pdf),
 find me at [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) and [GitHub](https://github.com/haoyang9804), or contract me through email: haoyang.ma AT connect.ust.hk.

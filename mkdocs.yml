@@ -19,7 +19,8 @@ hide:
   - Blog: blog/blog.md
     # - blog/CompilerCorrectness.md
     # - blog/STLC.md
-  - Paitings: play/play.md
+  - Paitings: play/paintings.md
+  - Games: play/games.md
 
 markdown_extensions:
   - pymdownx.superfences:
