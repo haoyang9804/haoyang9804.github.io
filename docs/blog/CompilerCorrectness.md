@@ -1,35 +1,4 @@
-# An Ever-growing Paper List for Compiler Correctness
-
-The following list outlines research endeavors focused on maintaining the correctness of modern compilers, primarily covering the following three areas:
-
-  - [Formal Verification of Realistic Compilers](#formal-verification-of-realistic-compilers)
-  - [Translation Validation for Compilers](#translation-validation-for-compilers)
-  - [Compiler Fuzzing](#compiler-fuzzing)
-
-As for other research efforts such as _test program reduction_, _test program deduplication_, _compiler debugging_, please refer to [this paper](https://dl.acm.org/doi/abs/10.1145/3363562).
-You can also find some early research efforts on the testing of _"ancient"_ compilers (Ada compiler, Fortran compiler, etc) in this paper.
-
-
-[view on GitHub](https://github.com/haoyang9804/Papers4CompilerCorrectness)
-
-
-## Formal Verification of Realistic Compilers
-
-+ A Formally Verified Compiler Back-end [Journal of Automated Reasoning '09]
-+ Formal Verification of a Realistic Compiler [Communications of the ACM '09]
-+ CompCert - A Formally Verified Optimizing Compiler [ERTS '16]
-+ Closing the Gap -- The Formally Verified Optimizing Compiler CompCert [SSS '17]
-+ CompCert: Practical Experience on Integrating and Qualifying a Formally Verified Optimizing Compiler [ERTS '18]
-
-## Translation Validation for Compilers
-
-+ Translation Validation for an Optimizing Compiler [PLDI '00]
-+ Compiler-agnostic Translation Validation [ISEC '18]
-+ Language-Parametric Compiler Validation with Application to LLVM [ASPLOS '21]
-+ Alive2: Bounded Translation Validation for LLVM [PLDI '21]
-+ End-to-End Translation Validation for the Halide Language [OOPSLA '22]
-
-## Compiler Fuzzing
+# An Ever-growing Paper List for Compiler Fuzzing
 
 + Practical Testing of a C99 Compiler Using Output Comparison [Software—Practice & Experience '07]
 + Volatiles are miscompiled, and what to do about it [EMSOFT '08]
@@ -85,6 +54,7 @@ You can also find some early research efforts on the testing of _"ancient"_ comp
 + Test-Case Reduction and Deduplication Almost for Free with Transformation-Based Compiler Testing [PLDI '21]
 + CsmithEdge: more effective compiler testing by handling undefined behaviour less conservatively [Empirical Software Engineering '22]
 + JIT-Picking: Differential Fuzzing of JavaScript Engines [CCS '22]
++ Making No-Fuss Compiler Fuzzing Effective [CC' 22]
 + History-Driven Test Program Synthesis for JVM Testing [ICSE '22]
 + Compiler Testing using Template Java Programs [ASE '22]
 + Finding Typing Compiler Bugs [PLDI '22]
@@ -102,4 +72,5 @@ You can also find some early research efforts on the testing of _"ancient"_ comp
 + Fuzzing Deep Learning Compilers with HirGen [ISSTA '23]
 + RustSmith: Random Differential Compiler Testing for Rust [ISSTA Tool '23]
 + Vectorizing Program Ingredients for Better JVM Testing [ISSTA '23]
-
++ GrayC: Greybox Fuzzing of Compilers and Analysers for C [ISSTA '23]
++ Grammar Mutation for Testing Input Parsers [ISSTA '23 Registered Report]

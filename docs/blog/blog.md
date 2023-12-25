@@ -1,5 +1,7 @@
 <!-- # Blog List -->
 
-[A Paper List about Compiler Correctness](./CompilerCorrectness.md)
-<!-- 
-[A Summary of My Internship at OneFlow](./OneFlowIntern.md) -->
+[Towards Understanding Basic Type System: A Simple Formal Proof for Typed Arithmetic Expressions in TAPL](./STLC.md)
+
+[A Paper List about Compiler Fuzzing](./CompilerCorrectness.md)
+
+[A Summary of My Internship at OneFlow](./OneFlowIntern.md)
