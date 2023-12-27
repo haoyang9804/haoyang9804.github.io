@@ -14,7 +14,7 @@ A PhD candidate at the Department of Computer Science and Engineering at HKUST.
 
 I hunt bugs in open-source software, contribute code to AI frameworks and compilers, and study high-performance computing.
 
-I write papers for graduation. I write [blogs](blog/blog) for fun.
+I write papers for graduation, while I write [blogs](blog/blog) for fun.
 
 Besides these hobbies that help me survive, 
 I also enjoy music programming, [digital painting](play/paintings), and [in-game photography](play/games).
