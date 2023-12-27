@@ -21,6 +21,7 @@ hide:
     # - blog/STLC.md
   - Paitings: play/paintings.md
   - Games: play/games.md
+  - Paper: papers.md
 
 markdown_extensions:
   - pymdownx.superfences:

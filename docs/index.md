@@ -14,7 +14,7 @@ A PhD candidate at the Department of Computer Science and Engineering at HKUST.
 
 I'd love to hunt bugs in open-source software, contribute code to AI frameworks and compilers, and study high-performance computing.
 
-I write [blogs](blog/blog) sometimes.
+I write papers for graduation. I write [blogs](blog/blog) for fun.
 
 Besides these hobbies that help me survive, 
 I also enjoy music programming, [digital painting](play/paintings), and [in-game photography](play/games).
@@ -63,6 +63,8 @@ As for engineering, I have been actively testing and helping maintain compilers 
 > <i><u>\* denotes corresponding author, # denotes equal contribution</u></i>
 
 ---
+
++ [Under Submission] ****
 
 + [preprent](https://arxiv.org/abs/2306.06884) **A Survey of Modern Compiler Fuzzing** (In progress)
 
