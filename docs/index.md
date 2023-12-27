@@ -12,7 +12,7 @@ This is Haoyang Ma (马昊阳).
 
 A PhD candidate at the Department of Computer Science and Engineering at HKUST.
 
-I'd love to hunt bugs in open-source software, contribute code to AI frameworks and compilers, and study high-performance computing.
+I hunt bugs in open-source software, contribute code to AI frameworks and compilers, and study high-performance computing.
 
 I write papers for graduation. I write [blogs](blog/blog) for fun.
 
