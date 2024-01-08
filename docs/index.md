@@ -21,7 +21,8 @@ I also enjoy music programming, [digital painting](play/paintings), and [in-game
 
 
 You can know more about me through my [resume](./resume.pdf),
-find me at [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) and [GitHub](https://github.com/haoyang9804), or contract me through email: haoyang.ma AT connect.ust.hk.
+find me at [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/),
+[Google Scholar](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en), and [GitHub](https://github.com/haoyang9804), or contract me through email: haoyang.ma AT connect.ust.hk.
 
  
 
