@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="generator" content="mkdocs-1.5.3, mkdocs-terminal-4.4.0">
+     
+     
+    <link rel="icon" type="image/png" sizes="192x192" href="../../img/android-chrome-192x192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="../../img/android-chrome-512x512.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="../../img/apple-touch-icon.png" />
+<link rel="shortcut icon" type="image/png" sizes="48x48" href="../../img/favicon.ico" />
+<link rel="icon" type="image/png" sizes="16x16" href="../../img/favicon-16x16.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="../../img/favicon-32x32.png" />
+
+
+    
+ 
+<title>> Internship in OneFlow - Haoyang Ma's homepage</title>
+
+
+<link href="../../css/fontawesome/css/fontawesome.min.css" rel="stylesheet">
+<link href="../../css/fontawesome/css/solid.min.css" rel="stylesheet">
+<link href="../../css/normalize.css" rel="stylesheet">
+<link href="../../css/terminal.css" rel="stylesheet">
+<link href="../../css/theme.css" rel="stylesheet">
+<link href="../../css/theme.tile_grid.css" rel="stylesheet">
+<link href="../../css/theme.footer.css" rel="stylesheet">
+<!-- default color palette -->
+<link href="../../css/palettes/default.css" rel="stylesheet">
+
+<!-- page layout -->
+<style>
+/* initially set page layout to a one column grid */
+.terminal-mkdocs-main-grid {
+    display: grid;
+    grid-column-gap: 1.4em;
+    grid-template-columns: auto;
+    grid-template-rows: auto;
+}
+
+/*  
+*   when side navigation is not hidden, use a two column grid.  
+*   if the screen is too narrow, fall back to the initial one column grid layout.
+*   in this case the main content will be placed under the navigation panel. 
+*/
+@media only screen and (min-width: 70em) {
+    .terminal-mkdocs-main-grid {
+        grid-template-columns: 4fr 9fr;
+    }
+}</style>
+
+
+
+     
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="../../javascripts/mathjax.js"></script>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+
+    
+</head>
+
+<body class="terminal"><div class="container">
+    <div class="terminal-nav">
+        <header class="terminal-logo">
+            <div id="mkdocs-terminal-site-name" class="logo terminal-prompt"><a href="/" class="no-style">Haoyang Ma's homepage</a></div>
+        </header>
+        
+        <nav class="terminal-menu">
+            
+        </nav>
+    </div>
+</div>
+        
+    <div class="container">
+        <div class="terminal-mkdocs-main-grid"><aside id="terminal-mkdocs-side-panel"><nav>
+  
+</nav><hr>
+<nav>
+    <ul>
+        <li><a href="#internship-in-oneflow">&gt; Internship in OneFlow</a></li>
+        <li><a href="#what-is-oneflow-uhhh-i-mean-as-a-framework-but-not-a-company">&gt; What is OneFlow? Uhhh, I mean, as a framework but not a company?</a></li><li><a href="#internship-begins-but-with-bugs">&gt; Internship begins, but with bugs.</a></li>
+    </ul>
+</nav>
+</aside>
+            <main id="terminal-mkdocs-main-content">
+<section id="mkdocs-terminal-content">
+    <h1 id="internship-in-oneflow">&gt; Internship in OneFlow</h1>
+<p>This is the summary of my internship experience at OneFlow.</p>
+<p>TL;NR: I helped with compiling Stable Diffusion models by OneFlow.</p>
+<h2 id="what-is-oneflow-uhhh-i-mean-as-a-framework-but-not-a-company">&gt; What is OneFlow? Uhhh, I mean, as a framework but not a company?</h2>
+<p>OneFlow, a company known for its flagship product, a high-speed AI compiler, shares the same name as its main offering. In essence, OneFlow the framework seamlessly integrates with PyTorch, providing comprehensive support for compiling PyTorch models and enabling further optimizations.</p>
+<p>In the open-source GitHub repository for onediff (a drop-in acceleration library for ComfyUI, HF diffusers, Stable Diffusion web UI, and other diffusion models), there are clear examples on how to use OneFlow for compilation.</p>
+<p>And here is a piece of an instance:</p>
+<div class="language-Python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">base</span> <span class="o">=</span> <span class="n">StableDiffusionXLPipeline</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">args</span><span class="o">.</span><span class="n">base</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">scheduler</span><span class="o">=</span><span class="n">scheduler</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">variant</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">variant</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">use_safetensors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">base</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">base</span><span class="o">.</span><span class="n">unet</span> <span class="o">=</span> <span class="n">oneflow_compile</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">unet</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;debug&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">imageprocessor</span> <span class="o">=</span> <span class="n">base</span><span class="p">(</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">prompt</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">prompt</span><span class="p">,</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">height</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">width</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">num_inference_steps</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">n_steps</span><span class="p">,</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">output_type</span><span class="o">=</span><span class="n">OUTPUT_TYPE</span><span class="p">,</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="p">)</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="n">image</span> <span class="o">=</span> <span class="n">imageprocessor</span><span class="o">.</span><span class="n">images</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="n">image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;h</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">height</span><span class="si">}</span><span class="s2">-w</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">width</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">saved_image</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>oneflow_compile</code> wraps the a <code>torch.module</code> and concealedly creates a OneFlow graph to substitute for the original <code>torch.module</code>. In calling <code>base</code> pipeline, <code>base.unet</code> finds itself as a OneFlow graph and falls into OneFlow workflow.</p>
+<p>In the OneFlow workflow, the first task is <strong>compilation</strong> (if the under-compiled graph has not been compiled yet), which involves optimizing the graph by fusing, replacing, and removing nodes. 
+Subsequently, the compiled graph is ready for <strong>inferring</strong> the results based on the given inputs.</p>
+<h2 id="internship-begins-but-with-bugs">&gt; Internship begins, but with bugs.</h2>
+<p>My first job is about resolving a shape-related bug.</p>
+<h3 id="bug-description">&gt; Bug description</h3>
+<p>Let me continue writing the above example code by adding one more workflow</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">imageprocessor</span> <span class="o">=</span> <span class="n">base</span><span class="p">(</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">prompt</span><span class="o">=</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">prompt</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">prompt</span><span class="p">],</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="n">height</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="n">width</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="n">num_inference_steps</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">n_steps</span><span class="p">,</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">output_type</span><span class="o">=</span><span class="n">OUTPUT_TYPE</span><span class="p">,</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">image</span> <span class="o">=</span> <span class="n">imageprocessor</span><span class="o">.</span><span class="n">images</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;h</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">height</span><span class="si">}</span><span class="s2">-w</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">width</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">saved_image</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<p>at the end.</p>
+<p>Different from the above code, the new code snippet change the input from one prompt to two prompts, thus extending the batch size.
+Then the bug shows up with such error message: <code>(4, 1280) != (2, 1280), shape mismatch</code>. Interestingly, this bug will not be triggered if I remove the first workflow, implying that the culprit stays inbetween the two workflows.</p>
+<p>Before the start of the second workflow, OneFlow examines whether there exists a previously compiled graph that can be reused for the upcoming workflow in order to reducing the consumption of unnecessary recompilation. Fortunately, the compiled unet in the first workflow is <strong><em>shared</em></strong>. The only thing we need to do is update it to a tiny extent to let it adapt to the size of new inputs.Unfortunately, the update of a unfriendly operator, <code>expand</code>, fails.</p>
+<p>To understand the problem intuitively, I construct the following partial graph. Red color represents the data flow where the incorrect shape is introduced. Op <code>model.time_embedding.linear_2-fused_matmul_bias-20</code> meets such mismatch between (4, 1280) and (2, 1280) where (4, 1280) is the correct shape. </p>
+<p><img alt="" src="../pic/oneflow1.png" /></p>
+<p>The shape error originates from <code>model-expand-1-mlir-gen-211</code>, an automatically fused operator by MLIR from <code>expand-dim</code> and <code>expand</code>. <code>model-expand-1-mlir-gen-211</code> can expand a small shape into a bigger one following a hardcoded attribute. For instance, given an attribute (4, 100), it can accept an input of (4, 1) and expand its shape to (4, 100). It's good to have operations such as <code>expand</code> and <code>squeeze</code> to "abuse" shapes ruthlessly, but they are actually detrimental to dynamic shape in implementation. </p>
+<p>Basically, the support of dynamic shape builds on the batch-size-agnostic nature. For instance, if a matmul operator contains a weight of shape [4, 5], then it can accepts inputs of varing batch sizes as long as the second dimension is 4.  In contrast, <code>model-expand-1-mlir-gen-211</code> requires prior knowledge of the batch size before expanding a smaller shape into a larger one. If the batch size changes, such as from 4 to 3, the <code>model-expand-1-mlir-gen-211</code> operator may lead to incorrect shape expansion, resulting in the observed bug, or immediately crashes since the expansion is illegal. In order to fix this bug, it is crucial to update the expanding attribute when modifying the shared compiled graph. To this end, my code patch extracts the new batch size and rewrites the attribute of <code>model-expand-1-mlir-gen-211</code>. Until then, the bug has been successfully killed.</p>
+</section>
+
+            </main>
+        </div>
+        <hr><footer>
+    <div class="terminal-mkdocs-footer-grid">
+        <div id="terminal-mkdocs-footer-copyright-info">
+             Site built with <a href="http://www.mkdocs.org">MkDocs</a> and <a href="https://github.com/ntno/mkdocs-terminal">Terminal for MkDocs</a>.
+        </div>
+    </div>
+</footer>
+    </div>
+
+    
+    
+    
+</body>
+
+</html>
