@@ -22,7 +22,7 @@ I hunt bugs in open-source software, contribute code to AI frameworks and compil
 I also enjoy [digital painting](play/paintings) and [in-game photography](play/games). -->
 
 
-You can know more about me through my [resume](./resume.pdf),
+You can know more about me through my [resume](resume.pdf),
 find me at [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/),
 [Google Scholar](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en), and [GitHub](https://github.com/haoyang9804), or contract me through email: haoyang.ma AT connect.ust.hk.
 
