@@ -12,12 +12,14 @@ This is Haoyang Ma (马昊阳).
 
 A PhD candidate at the Department of Computer Science and Engineering at HKUST.
 
-I hunt bugs in open-source software, contribute code to AI frameworks and compilers, and study high-performance computing.
+I hunt bugs in open-source software, contribute code to AI frameworks and compilers, and study high-performance computing. My research focus and engineering engagement can be roughly illustrated in this figure:
+
+<img src="RD.png", width="100">
 
 <!-- I write papers for graduation, while I write [blogs](blog/blog) for fun. -->
 
-Besides these hobbies that help me survive, 
-I also enjoy [digital painting](play/paintings) and [in-game photography](play/games).
+<!-- Besides these hobbies that help me survive, 
+I also enjoy [digital painting](play/paintings) and [in-game photography](play/games). -->
 
 
 You can know more about me through my [resume](./resume.pdf),
