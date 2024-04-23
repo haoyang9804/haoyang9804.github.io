@@ -7,27 +7,80 @@
 [:simple-linkedin:](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) -->
 <!-- [:simple-googlescholar:](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en) -->
 
+## <font color="green">About Me</font>
 
-This is Haoyang Ma (马昊阳).
+<!-- This is Haoyang Ma (马昊阳). -->
 
-A PhD candidate at the Department of Computer Science and Engineering at HKUST.
+<!-- A PhD candidate at the Department of Computer Science and Engineering at HKUST.
 
-I hunt bugs in open-source software, contribute code to AI frameworks and compilers, and study high-performance computing. My research focus and engineering engagement can be roughly illustrated in this figure:
-
-<img src="RD.png", width="100">
+I develop **fuzzers** to hunt bugs in open-source compilers (TVM and Solidity) and **bug localizers** to isolate compiler bugs.
+ -->
 
 <!-- I write papers for graduation, while I write [blogs](blog/blog) for fun. -->
 
-<!-- Besides these hobbies that help me survive, 
-I also enjoy [digital painting](play/paintings) and [in-game photography](play/games). -->
+<!-- Besides these hobbies that help me survive, -->
+<!-- I also enjoy [digital painting](play/paintings) and [in-game photography](play/games). -->
+
+let **name** = "Haoyang Ma (马昊阳)"
+
+let **intro** = "I develop **fuzzers** to hunt bugs in open-source compilers and **bug localizers** to isolate compiler bugs"
+
+let **email** = haoyang.ma AT connect.ust.hk;
+
+let **contact** = Either([Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/), email);
+
+let **info** = [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing);
 
 
-You can know more about me through my [resume](resume.pdf),
-find me at [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/),
-[Google Scholar](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en), and [GitHub](https://github.com/haoyang9804), or contract me through email: haoyang.ma AT connect.ust.hk.
 
- 
 
+<!-- Please consider referring to my [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing),
+[Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/),
+[Google Scholar](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en), and [GitHub](https://github.com/haoyang9804) for more information -->
+<!-- and contracting me through email: haoyang.ma AT connect.ust.hk. -->
+
+
+## <font color="green">Industry Experience</font>
+
++ **SiliconFlow** <u>Dec 2023 ~ Feb 2024</u> *AI Framework Dev Intern*
++ **Intel** <u>Feb 2024 ~ Now</u> *Compiler Engineer Intern*
+
+## <font color="green">Education Experience</font>
+
++ **HKUST**: <u>2021 ~ 2025 if lucky else maybe<2026></u> *PhD in Computer Science and Engineering*
++ **Tianjin University** <u>2016 ~ 2020</u> *BE in Software Engineering*
+
+## <font color="green">Research Experience</font>
+
+let F = first author, F\* = second author who contributes equally to the first author
+
++ **Bug Detection**
+
+    + [Under Review] <u>**A Tale of Two DL Cities: When Library Tests Meet Compiler**</u>
+
+        <!-- > Anonymous, **Haoyang Ma**, Anonymous -->
+
+    + [Under Review] (F) <u>**Towards Understanding Solidity Compiler Bugs**</u>
+
+        <!-- >**Haoyang Ma**, Anonymous -->
+
+    + [ISSTA '23] (F) <u>**Fuzzing Deep Learning Compilers with HirGen**</u>
+
+         <!-- >**Haoyang Ma**, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung -->
+
+    + [FSE '21] <u>**A Comprehensive Study of Deep Learning Compiler Bugs**</u>
+
+        <!-- >Qingchao Shen, **Haoyang Ma**, Junjie Chen, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen -->
+
+    + [Preprint] (F) <u>**A Survey of Modern Compiler Fuzzing**</u>
+
+        <!-- >**Haoyang Ma** -->
+
++ **Bug Localization**
+
+    + [ASE '20] (F\*)<u>**Enhanced Compiler Bug Isolation via Memoized Search**</u>
+
+        <!-- >Junjie Chen\*, **Haoyang Ma\***, Lingming Zhang -->
 
 
 <!-- , supervised by Prof. [Shing-Chi Cheung](https://www.cse.ust.hk/~scc/). I'm now a member of the [CASTLE Group](http://castle.cse.ust.hk/castle/index.html). Before I joined in CASTLE Group, I did research on compiler bug isolation under the guidance of Prof. [Junjie Chen](https://sites.google.com/site/junjiechen08/) for more than one year when I was an undergraduate at Tianjin University. -->
@@ -50,9 +103,9 @@ As for engineering, I have been actively testing and helping maintain compilers 
 ---
 
 + **Hong Kong University of Science and Technology** Department of Computer Science and Engineering
-  
+
     PhD in Computer Science and Engineering
-  
+
     Aug. 2021 ~ Now
 
 + **Tianjin University** College of Intelligence and Computing

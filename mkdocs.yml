@@ -3,14 +3,14 @@ site_name: Haoyang Ma's homepage
 theme:
   # name: material
   name: terminal
-# theme: 
+# theme:
 #   name: null
 #   custom_dir: 'cinder'
 nav:
   - Home: index.md
   # - Compiler Correctness: CompilerCorrectness.md
   # - Misc: misc.md
-  # - Blog: 
+  # - Blog:
   #   - 2022-10-13: blog/C++ -Memory Management.md
   #   - 2022-10-29: blog/STLC.md
 # hide:
@@ -45,8 +45,9 @@ markdown_extensions:
 plugins:
     - mermaid2
 extra_javascript:
-  - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 extra:
   generator: false
+extra_css:
+  - ./stylesheets/extra.css
