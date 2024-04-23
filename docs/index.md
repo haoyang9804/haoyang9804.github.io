@@ -52,7 +52,7 @@ let **info** = [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8
 
 ## <font color="green">Research Experience</font>
 
-let F = first author, F\* = second author who contributes equally to the first author
+let F = first author, F\* = first co-author
 
 + **Bug Detection**
 
