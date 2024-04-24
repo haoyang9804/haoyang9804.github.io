@@ -21,15 +21,15 @@ I develop **fuzzers** to hunt bugs in open-source compilers (TVM and Solidity) a
 <!-- Besides these hobbies that help me survive, -->
 <!-- I also enjoy [digital painting](play/paintings) and [in-game photography](play/games). -->
 
-let **name** = "Haoyang Ma (马昊阳)"
+let **name** = "haoyang.ma"
 
 let **intro** = "I develop **fuzzers** to hunt bugs in open-source compilers and **bug localizers** to isolate compiler bugs"
 
-let **email** = haoyang.ma AT connect.ust.hk;
+let **email** = ${name}@connect.ust.hk;
 
-let **contact** = Either([Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/), email);
+let **contact** = [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) | email;
 
-let **info** = [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing);
+let **more_info** = [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing);
 
 
 
