@@ -23,7 +23,7 @@ I develop **fuzzers** to hunt bugs in open-source compilers (TVM and Solidity) a
 
 let **name** = "haoyang.ma"
 
-let **intro** = "I develop **fuzzers** to hunt bugs in open-source compilers and **bug localizers** to isolate compiler bugs"
+let **intro** = "I develop **fuzzers** to hunt bugs in open-source software and **bug localizers** to isolate bugs"
 
 let **email** = ${name}@connect.ust.hk;
 
