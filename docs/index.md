@@ -64,23 +64,54 @@ let F = first author, F\* = first co-author
 
         <!-- >**Haoyang Ma**, Anonymous -->
 
-    + [ISSTA '23] (F) <u>**Fuzzing Deep Learning Compilers with HirGen**</u>
+    + [ISSTA '23] (F) <u>**[Fuzzing Deep Learning Compilers with HirGen](papers/issta23.pdf)**</u>
 
          <!-- >**Haoyang Ma**, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung -->
 
-    + [FSE '21] <u>**A Comprehensive Study of Deep Learning Compiler Bugs**</u>
+    + [FSE '21] <u>**[A Comprehensive Study of Deep Learning Compiler Bugs](papers/fse21.pdf)**</u>
 
         <!-- >Qingchao Shen, **Haoyang Ma**, Junjie Chen, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen -->
 
-    + [Preprint] (F) <u>**A Survey of Modern Compiler Fuzzing**</u>
+    + [Preprint] (F) <u>**[A Survey of Modern Compiler Fuzzing](https://arxiv.org/abs/2306.06884)**</u> (Still in progress)
 
         <!-- >**Haoyang Ma** -->
 
 + **<font color=red>Bug Localization</font>**
 
-    + [ASE '20] (F\*)<u>**Enhanced Compiler Bug Isolation via Memoized Search**</u>
+    + [ASE '20] (F\*)<u>**[Enhanced Compiler Bug Isolation via Memoized Search](papers/ase20.pdf)**</u>
 
         <!-- >Junjie Chen\*, **Haoyang Ma\***, Lingming Zhang -->
+
+## <font color=green>Award</font>
+
++ Some ~~easy-to-get bronze medals~~ in ICPC/CCPC regional contests 2018-2019
++ Postgraduate Studentship 2021~2025
++ Research Travel Grant 2023
+
+## <font color=green>Services</font>
+
++ Conference Paper Reviewer: ISSTA '21 '23.
+
++ Journal Paper Reviewer: TSE
+
+## <font color=green>Teaching</font>
+
+I was the TA of the following courses in HKUST.
+
++ COMP 3111 Software Engineering (Spring 2021-22)
++ COMP 2011 Programming With C++ (Fall 2022-23)
++ COMP 1021 Introduction to Computer Science (Fall 2023-2024)
+
+## <font color=green>Misc</font>
+
+I enjoy reading classic textbooks in the fields of theory of computation, mathematical logic, and progarmming language theory. It's my honor to embrace the elegance of abstraction from:
+
++ A Mathematical Introduction to Logic Solution
++ Static Program Analysis
++ Formal Reasoning About Programs
++ Software Foundations (vol 1 && 2)
++ Introduction to the Theory of Computation
++ Introduction to Algorithms
 
 
 <!-- , supervised by Prof. [Shing-Chi Cheung](https://www.cse.ust.hk/~scc/). I'm now a member of the [CASTLE Group](http://castle.cse.ust.hk/castle/index.html). Before I joined in CASTLE Group, I did research on compiler bug isolation under the guidance of Prof. [Junjie Chen](https://sites.google.com/site/junjiechen08/) for more than one year when I was an undergraduate at Tianjin University. -->
