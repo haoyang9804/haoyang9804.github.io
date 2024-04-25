@@ -7,7 +7,7 @@
 [:simple-linkedin:](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) -->
 <!-- [:simple-googlescholar:](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en) -->
 
-## <font color="green">About Me</font>
+<font color="green">About Me</font>
 
 <!-- This is Haoyang Ma (马昊阳). -->
 
@@ -21,15 +21,15 @@ I develop **fuzzers** to hunt bugs in open-source compilers (TVM and Solidity) a
 <!-- Besides these hobbies that help me survive, -->
 <!-- I also enjoy [digital painting](play/paintings) and [in-game photography](play/games). -->
 
-let **name** = "haoyang.ma"
+let **<font color=red>name</font>** = "haoyang.ma"
 
-let **intro** = "I develop **fuzzers** to hunt bugs in open-source software and **bug localizers** to isolate bugs"
+let **<font color=red>intro</font>** = "I develop **fuzzers** to hunt bugs in open-source software and **bug localizers** to isolate bugs"
 
-let **email** = ${name}@connect.ust.hk;
+let **<font color=red>email</font>** = ${name}@connect.ust.hk;
 
-let **contact** = [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) | email;
+let **<font color=red>contact</font>** = [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) | email;
 
-let **more_info** = [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing);
+let **<font color=red>more_info</font>** = [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing);
 
 
 
@@ -42,19 +42,19 @@ let **more_info** = [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn
 
 ## <font color="green">Industry Experience</font>
 
-+ **SiliconFlow** <u>Dec 2023 ~ Feb 2024</u> *AI Framework Dev Intern*
-+ **Intel** <u>Feb 2024 ~ Now</u> *Compiler Engineer Intern*
++ **<font color=red>SiliconFlow</font>** <u>Dec 2023 ~ Feb 2024</u> *AI Framework Dev Intern*
++ **<font color=red>Intel</font>** <u>Feb 2024 ~ Now</u> *Compiler Engineer Intern*
 
 ## <font color="green">Education Experience</font>
 
-+ **HKUST**: <u>2021 ~ 2025 if lucky else maybe<2026></u> *PhD in Computer Science and Engineering*
-+ **Tianjin University** <u>2016 ~ 2020</u> *BE in Software Engineering*
++ **<font color=red>HKUST</font>**: <u>2021 ~ 2025 if lucky else maybe<2026></u> *PhD in Computer Science and Engineering*
++ **<font color=red>Tianjin University</font>** <u>2016 ~ 2020</u> *BE in Software Engineering*
 
 ## <font color="green">Research Experience</font>
 
 let F = first author, F\* = first co-author
 
-+ **Bug Detection**
++ **<font color=red>Bug Detection</font>**
 
     + [Under Review] <u>**A Tale of Two DL Cities: When Library Tests Meet Compiler**</u>
 
@@ -76,7 +76,7 @@ let F = first author, F\* = first co-author
 
         <!-- >**Haoyang Ma** -->
 
-+ **Bug Localization**
++ **<font color=red>Bug Localization</font>**
 
     + [ASE '20] (F\*)<u>**Enhanced Compiler Bug Isolation via Memoized Search**</u>
 

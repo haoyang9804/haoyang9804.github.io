@@ -3,6 +3,9 @@ site_name: Ma, Haoyang (马昊阳)
 theme:
   # name: material
   name: terminal
+  features:
+    - navigation.side.hide
+    - revision.date
 # theme:
 #   name: null
 #   custom_dir: 'cinder'
