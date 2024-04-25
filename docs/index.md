@@ -106,7 +106,7 @@ I was the TA of the following courses in HKUST.
 
 I enjoy reading classic textbooks in the fields of theory of computation, mathematical logic, and progarmming language theory. It's my honor to embrace the elegance of abstraction from:
 
-+ A Mathematical Introduction to Logic Solution
++ A Mathematical Introduction to Logic
 + Static Program Analysis
 + Formal Reasoning About Programs
 + Software Foundations (vol 1 && 2)
