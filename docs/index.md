@@ -84,7 +84,7 @@ let F = first author, F\* = first co-author
 
 ## <font color=green>Award</font>
 
-+ Some ~~easy-to-get bronze medals~~ in ICPC/CCPC regional contests 2018-2019
++ Some <del>easy-to-get bronze medals</del> in ICPC/CCPC regional contests 2018-2019
 + Postgraduate Studentship 2021~2025
 + Research Travel Grant 2023
 
@@ -102,17 +102,16 @@ I was the TA of the following courses in HKUST.
 + COMP 2011 Programming With C++ (Fall 2022-23)
 + COMP 1021 Introduction to Computer Science (Fall 2023-2024)
 
-## <font color=green>Misc</font>
+<!-- ## <font color=green>Misc</font>
 
-I enjoy reading classic textbooks in the fields of theory of computation, mathematical logic, and progarmming language theory. It's my honor to embrace the elegance of abstraction from:
-
-+ A Mathematical Introduction to Logic
-+ Static Program Analysis
-+ Formal Reasoning About Programs
-+ Software Foundations (vol 1 && 2)
-+ Introduction to the Theory of Computation
-+ Introduction to Algorithms
-
++ I enjoy reading classic textbooks in the fields of theory of computation, mathematical logic, and progarmming language theory. It's my honor to embrace the elegance of abstraction from:
+    + A Mathematical Introduction to Logic
+    + Static Program Analysis
+    + Formal Reasoning About Programs
+    + Software Foundations (vol 1 && 2)
+    + Introduction to the Theory of Computation
+    + Introduction to Algorithms
++ I love shoot birds, well, I mean, using camera but not creepy things like a gun. -->
 
 <!-- , supervised by Prof. [Shing-Chi Cheung](https://www.cse.ust.hk/~scc/). I'm now a member of the [CASTLE Group](http://castle.cse.ust.hk/castle/index.html). Before I joined in CASTLE Group, I did research on compiler bug isolation under the guidance of Prof. [Junjie Chen](https://sites.google.com/site/junjiechen08/) for more than one year when I was an undergraduate at Tianjin University. -->
 
