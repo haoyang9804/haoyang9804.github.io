@@ -58,8 +58,6 @@ let F = first author, F\* = first co-author
 
   + [Under Review] (F) <u>**Towards Understanding Solidity Compiler Bugs**</u>
 
-        <!-- >**Haoyang Ma**, Anonymous -->
-
   + [FSE '21] <u>**[A Comprehensive Study of Deep Learning Compiler Bugs](papers/fse21.pdf)**</u>
 
       <!-- >Qingchao Shen, **Haoyang Ma**, Junjie Chen, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen -->
@@ -83,7 +81,7 @@ let F = first author, F\* = first co-author
 
 + **<font color=red>Bug Localization</font>**
 
-    + [ASE '20] (F\*)<u>**[Enhanced Compiler Bug Isolation via Memoized Search](papers/ase20.pdf)**</u>
+    + [ASE '20] (F\*) <u>**[Enhanced Compiler Bug Isolation via Memoized Search](papers/ase20.pdf)**</u>
 
         <!-- >Junjie Chen\*, **Haoyang Ma\***, Lingming Zhang -->
 
