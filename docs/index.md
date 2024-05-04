@@ -54,23 +54,28 @@ let **<font color=red>more_info</font>** = [resume](https://docs.google.com/docu
 
 let F = first author, F\* = first co-author
 
++ **<font color=red>Bug Understanding</font>**
+
+  + [Under Review] (F) <u>**Towards Understanding Solidity Compiler Bugs**</u>
+
+        <!-- >**Haoyang Ma**, Anonymous -->
+
+  + [FSE '21] <u>**[A Comprehensive Study of Deep Learning Compiler Bugs](papers/fse21.pdf)**</u>
+
+      <!-- >Qingchao Shen, **Haoyang Ma**, Junjie Chen, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen -->
+
 + **<font color=red>Bug Detection</font>**
 
     + [Under Review] <u>**A Tale of Two DL Cities: When Library Tests Meet Compiler**</u>
 
         <!-- > Anonymous, **Haoyang Ma**, Anonymous -->
 
-    + [Under Review] (F) <u>**Towards Understanding Solidity Compiler Bugs**</u>
-
-        <!-- >**Haoyang Ma**, Anonymous -->
 
     + [ISSTA '23] (F) <u>**[Fuzzing Deep Learning Compilers with HirGen](papers/issta23.pdf)**</u>
 
          <!-- >**Haoyang Ma**, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung -->
 
-    + [FSE '21] <u>**[A Comprehensive Study of Deep Learning Compiler Bugs](papers/fse21.pdf)**</u>
 
-        <!-- >Qingchao Shen, **Haoyang Ma**, Junjie Chen, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen -->
 
     + [Preprint] (F) <u>**[A Survey of Modern Compiler Fuzzing](https://arxiv.org/abs/2306.06884)**</u> (Still in progress)
 
