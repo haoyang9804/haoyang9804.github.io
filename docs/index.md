@@ -7,7 +7,7 @@
 [:simple-linkedin:](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) -->
 <!-- [:simple-googlescholar:](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en) -->
 
-<font color="green">About Me</font>
+**<font color="green">About Me</font>**
 
 <!-- This is Haoyang Ma (马昊阳). -->
 
