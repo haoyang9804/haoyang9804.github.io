@@ -23,7 +23,7 @@ I develop **fuzzers** to hunt bugs in open-source compilers (TVM and Solidity) a
 
 let **<font color=red>name</font>** = "haoyang.ma"
 
-let **<font color=red>intro</font>** = "I develop **fuzzers** to hunt bugs in open-source software and **bug localizers** to isolate bugs"
+let **<font color=red>intro</font>** = "I develop **fuzzers** to hunt bugs in open-source software and **bug localizers** to isolate bugs."
 
 let **<font color=red>email</font>** = ${name}@connect.ust.hk;
 
@@ -93,7 +93,7 @@ let F = first author, F\* = first co-author
 
 ## <font color=green>Services</font>
 
-+ Conference Paper Reviewer: ISSTA '21 '23, AIWare '24.
++ Conference Paper Reviewer: ISSTA '21 '23, AIWare '24, ISSRE' 24.
 
 + Journal Paper Reviewer: TSE
 
