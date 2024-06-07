@@ -1,27 +1,16 @@
 plugins: []
 site_name: Ma, Haoyang (马昊阳)
 theme:
-  # name: material
   name: terminal
   features:
     - navigation.side.hide
     - revision.date
-# theme:
-#   name: null
-#   custom_dir: 'cinder'
 nav:
   - Home: index.md
-  # - Compiler Correctness: CompilerCorrectness.md
-  # - Misc: misc.md
-  # - Blog:
-  #   - 2022-10-13: blog/C++ -Memory Management.md
-  #   - 2022-10-29: blog/STLC.md
 # hide:
 #   - Research: papers.md
 hide:
   - Blog: blog/blog.md
-    # - blog/CompilerCorrectness.md
-    # - blog/STLC.md
   - Paitings: play/paintings.md
   - Games: play/games.md
   - Paper: papers.md

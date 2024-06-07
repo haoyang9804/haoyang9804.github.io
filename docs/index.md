@@ -1,25 +1,4 @@
-<!-- # Haoyang Ma(马昊阳) -->
-
-<!-- <img src="play/me.jpg", width="400"> -->
-
-<!-- [:material-email-search-outline:](mailto:hmaaj@connect.ust.hk)
-[:simple-github:](https://github.com/haoyang9804)
-[:simple-linkedin:](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) -->
-<!-- [:simple-googlescholar:](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en) -->
-
 **<font color="green">About Me</font>**
-
-<!-- This is Haoyang Ma (马昊阳). -->
-
-<!-- A PhD candidate at the Department of Computer Science and Engineering at HKUST.
-
-I develop **fuzzers** to hunt bugs in open-source compilers (TVM and Solidity) and **bug localizers** to isolate compiler bugs.
- -->
-
-<!-- I write papers for graduation, while I write [blogs](blog/blog) for fun. -->
-
-<!-- Besides these hobbies that help me survive, -->
-<!-- I also enjoy [digital painting](play/paintings) and [in-game photography](play/games). -->
 
 let **<font color=red>name</font>** = "haoyang.ma"
 
@@ -30,14 +9,6 @@ let **<font color=red>email</font>** = ${name}@connect.ust.hk;
 let **<font color=red>contact</font>** = [Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/) | email;
 
 let **<font color=red>more_info</font>** = [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing);
-
-
-
-
-<!-- Please consider referring to my [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing),
-[Linkedin](https://www.linkedin.com/in/haoyang-ma-a870b01b6/),
-[Google Scholar](https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en), and [GitHub](https://github.com/haoyang9804) for more information -->
-<!-- and contracting me through email: haoyang.ma AT connect.ust.hk. -->
 
 
 ## <font color="green">Industry Experience</font>
