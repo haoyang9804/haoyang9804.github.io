@@ -27,7 +27,7 @@ let F = first author, F\* = first co-author
 
 + **<font color=red>Bug Understanding</font>**
 
-  + [Under Review] (F) <u>**Towards Understanding Solidity Compiler Bugs**</u>
+  + [ISSTA' 24] (F) <u>**Towards Understanding Solidity Compiler Bugs**</u>
 
   + [FSE '21] <u>**[A Comprehensive Study of Deep Learning Compiler Bugs](papers/fse21.pdf)**</u>
 
@@ -35,7 +35,7 @@ let F = first author, F\* = first co-author
 
 + **<font color=red>Bug Detection</font>**
 
-    + [Under Review] <u>**A Tale of Two DL Cities: When Library Tests Meet Compiler**</u>
+    + [ICSE '25] <u>**A Tale of Two DL Cities: When Library Tests Meet Compiler**</u>
 
         <!-- > Anonymous, **Haoyang Ma**, Anonymous -->
 
