@@ -27,7 +27,7 @@ let F = first author, F\* = first co-author
 
 + **<font color=red>Bug Understanding</font>**
 
-  + [ISSTA' 24] (F) <u>**Towards Understanding Solidity Compiler Bugs**</u>
+  + [ISSTA' 24] (F) <u>**[Towards Understanding Solidity Compiler Bugs](https://arxiv.org/abs/2407.05981)**</u>
 
   + [FSE '21] <u>**[A Comprehensive Study of Deep Learning Compiler Bugs](papers/fse21.pdf)**</u>
 
