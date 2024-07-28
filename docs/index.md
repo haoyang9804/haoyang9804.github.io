@@ -14,7 +14,7 @@ let **<font color=red>more_info</font>** = [resume](https://docs.google.com/docu
 ## <font color="green">Industry Experience</font>
 
 + **<font color=red>SiliconFlow</font>** <u>Dec 2023 ~ Feb 2024</u> *AI Framework Dev Intern*
-+ **<font color=red>Intel</font>** <u>Feb 2024 ~ Now</u> *Compiler Engineer Intern*
++ **<font color=red>Intel</font>** <u>Feb 2024 ~ Jul 2024</u> *Compiler Engineer Intern*
 
 ## <font color="green">Education Experience</font>
 
