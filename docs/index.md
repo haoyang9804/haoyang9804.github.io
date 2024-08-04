@@ -35,7 +35,7 @@ let F = first author, F\* = first co-author
 
 + **<font color=red>Bug Detection</font>**
 
-    + [ICSE '25] <u>**A Tale of Two DL Cities: When Library Tests Meet Compiler**</u>
+    + [ICSE '25] <u>**[A Tale of Two DL Cities: When Library Tests Meet Compiler](https://arxiv.org/abs/2407.16626)**</u>
 
         <!-- > Anonymous, **Haoyang Ma**, Anonymous -->
 
