@@ -67,7 +67,7 @@ let F = first author, F\* = first co-author
 
 ## <font color=green>Services</font>
 
-+ Conference Paper Reviewer: ISSTA '21 '23, AIWare '24, ISSRE' 24.
++ Conference Paper Reviewer: ISSTA '21 '23, AIWare '24, ISSRE' 24, ICSE' 25
 
 + Journal Paper Reviewer: TSE
 
