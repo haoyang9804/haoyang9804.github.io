@@ -10,7 +10,7 @@ let **<font color=red>contact</font>** = [Linkedin](https://www.linkedin.com/in/
 
 let **<font color=red>more_info</font>** = [resume](https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing);
 
-## <font color="green">Industry Experience</font>
+## <font color="green">Academic Experience</font>
 
 + **<font color=red>Imperial College London</font>** <u>Sep 2024 ~ Feb 2025</u> *Visiting PhD Student*
 
