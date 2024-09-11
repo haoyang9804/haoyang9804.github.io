@@ -28,7 +28,7 @@ let **<font color=red>more_info</font>** = [resume](https://docs.google.com/docu
 
 let F = first author, F\* = first co-author
 
-+ **<font color=red>Bug Understanding</font>**
++ **<font color=red>Bug Analysis</font>**
 
     + [ISSTA' 24] (F) <u>**[Towards Understanding Solidity Compiler Bugs](https://arxiv.org/abs/2407.05981)**</u>
 
