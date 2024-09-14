@@ -11,9 +11,6 @@ jobs:
       - name: push
         run: |
           pwd
-          git init
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add .
-          git commit -m "refresh website"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/haoyang9804/haoyang9804.github.io master:gh-pages -f
