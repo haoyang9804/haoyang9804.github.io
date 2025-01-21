@@ -44,10 +44,11 @@ h1, h2, h3 {
 }
 h2, h3 {
 	border-bottom-style: solid;
-	font-size: 20pt;
+	font-size: 15pt;
 	border-color: #EEE;
 	margin-top: 1.5em;
-	margin-bottom: 1em;
+	margin-bottom: 5px;
+    font: 1.5em/1.5em 'Noto Sans', 'Open Sans', sans-serif;
 }
 h1 { font-size: 26pt; }
 
@@ -96,7 +97,7 @@ ol.pubs li ul {
 }
 
 ol.pubs li {
-	adadasdadasdasd-list-style-type: decimal-leading-zero;
+	list-style-type: decimal-leading-zero;
 	margin-bottom: 1em;
 	padding-left: 0.5em;
 }
@@ -110,6 +111,44 @@ td.firstCol {
     text-align: right;
     vertical-align: top;
 }
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+.bio-container {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.left-column {
+    flex: 3;
+}
+.right-column {
+    flex: 1;
+}
+.news-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+.section {
+    margin-bottom: 30px;
+}
+.profile-pic {
+    width: 200px;
+    height: auto;
+    align-self: flex-start;
+    margin-top: 40px; /* Adjust this value to lower the image */
+}
+h2 {
+    border-bottom: 0px solid #ccc;
+    padding-bottom: -10px;
+}
 </style>
 </head>
 
@@ -119,8 +158,8 @@ td.firstCol {
             <hr style="width: 100%">
 
             <div id="menu-bar" class="headerlinks" style="text-align:center">
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing">C.V.</a> </b>
+            <!-- &nbsp;&nbsp;&nbsp;&nbsp;
+            <b> <a href="https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing">C.V.</a> </b> -->
             &nbsp;&nbsp;&nbsp;&nbsp;
             <b> <a href="https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en">Google Scholar</a></b>
             &nbsp;&nbsp;&nbsp;&nbsp;
@@ -129,43 +168,39 @@ td.firstCol {
             <b> <a href="mailto:haoyang.ma@connect.ust.hk">Email</a></b>
             &nbsp;&nbsp;&nbsp;&nbsp;
             <b> <a href="./notes.html">Notes</a></b>
-            <!-- 
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="index.html#teaching"> Post & Note</a> </b>
-            -->
-  <!--           &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="#other.html">Other</a> </b> -->
             </div>
 
-            <hr style="width: 100%">
-
-            <img style="float: right; margin-left: 50px; padding-bottom: 10px;" src="WechatIMG132.jpg" alt="photo" width="175" />
-
-            <p align="justify" >
-                <br>PhD candidate at Hong Kong University of Science and Technology, <a href="http://castle.cse.ust.hk/">Castle group</a>
-                <br>Visiting researcher at Imperial College London, <a href="https://fastpl.doc.ic.ac.uk/">fastPL group</a>
-                <br>Compiler engineer intern in SiliconFlow, Intel, and Huawei HK.
-            </p>
- 
-            <p align="justify" >
-                My research focuses on maintaining compiler correctness. Until now, I have worked on the following topics:
-                <br>&#128073;Bug analysis. (Dig out bug patterns from large-scale open-source projects.)
-                <br>&#128073;Bug Detection. (Random program generator, mutation-based fuzzing, etc.)
-                <br>&#128073;Bug localization. (Learning-based approaches for locating suspicious code snippets.)
-                <br>I'm also interested in <u>translation validation</u> and <u>automated reasoning</u>
-                (Very interested to be honest).
-            </p>
-
-            <p align="justify" >
-                Until now, my <a href="https://sites.google.com/view/qingchaoshen">collaborator</a> and I have studied over 1000 compiler bugs (including 603 deep learning compiler bugs and 533 Solidity compiler bugs) and detected more than 200 compiler bugs (For instance, Solidity compiler bugs: <a href="https://github.com/ethereum/solidity/issues?q=author%3Ahaoyang9804">😀</a>, <a href="https://github.com/hyperledger-solang/solang/issues?q=author%3Ahaoyang9804">🙃</a>; deep learning compiler bugs: <a href="https://github.com/apache/tvm/issues?q=author%3Ajikechao">😃</a>, <a href="https://github.com/apache/tvm/issues?q=author%3Ahaoyang9804">😆</a>).
-            </p>
-
-            <p align="justify" >
-                I'm now working on developing Erwin
-                <a href="https://github.com/haoyang9804/Erwin"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/haoyang9804/Erwin"></a>
-                <a href="https://www.npmjs.com/package/@__haoyang__/erwin"><img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/%40__haoyang__%2Ferwin"></a>, a bounded exhausive Solidity program generator. It has found over 20 Solidity compiler bugs and it is still on the
-                way to find more.
-            </p>
+            <div class="bio-container">
+                <div class="left-column">
+                    <!-- <h2 style="width: 100%; text-align: left;"> Bio </h2> -->
+                    <p align="justify" >
+                        <br>PhD candidate at Hong Kong University of Science and Technology, <a href="http://castle.cse.ust.hk/">Castle group</a>.
+                        <br>Visiting researcher at Imperial College London, <a href="https://fastpl.doc.ic.ac.uk/">fastPL group</a>.
+                        <br>Compiler engineer intern in SiliconFlow, Intel, and Huawei HK.
+                    </p>
+         
+                    <p align="justify" >
+                        My research spans the areas of software engineering, programming languages, and their intersection with AI, including
+                        <strong>bug analysis</strong>, <strong>bug detection</strong>, <strong>bug localization</strong> and <strong>LLM-empowered programming</strong>.
+                        <br>I'm also interested in <u>translation validation</u> and <u>automated reasoning</u>.
+                    </p>
+        
+                    <p align="justify" >
+                        Until now, my <a href="https://sites.google.com/view/qingchaoshen">collaborator</a> and I have studied over 1000 compiler bugs (including 603 deep learning compiler bugs and 533 Solidity compiler bugs) and detected more than 200 compiler bugs (For instance, Solidity compiler bugs: <a href="https://github.com/ethereum/solidity/issues?q=author%3Ahaoyang9804">😀</a>, <a href="https://github.com/hyperledger-solang/solang/issues?q=author%3Ahaoyang9804">🙃</a>; deep learning compiler bugs: <a href="https://github.com/apache/tvm/issues?q=author%3Ajikechao">😃</a>, <a href="https://github.com/apache/tvm/issues?q=author%3Ahaoyang9804">😆</a>).
+                    </p>
+                </div>
+                <div class="right-column">
+                    <img style="float: down; margin-left: 20px; padding-bottom: 10px;" src="birdy.jpg" alt="photo" width="175" class="profile-pic" /> 
+                </div>
+            </div>
+            <div class="news-container">
+                <p align="justify" >
+                    I'm now working on developing Erwin
+                    <a href="https://github.com/haoyang9804/Erwin"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/haoyang9804/Erwin"></a>
+                    <a href="https://www.npmjs.com/package/@__haoyang__/erwin"><img alt="NPM Downloads" src="https://img.shields.io/npm/d18m/%40__haoyang__%2Ferwin"></a>, a bounded exhausive Solidity program generator. It has found over 25 Solidity compiler bugs and it is still on the
+                    way to find more.
+                </p>
+            </div>
 
             <script type="text/javascript">
                 document.getElementById('address').style.display = 'none';
