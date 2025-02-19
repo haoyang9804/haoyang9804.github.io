@@ -3,10 +3,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Haoyang Ma (马昊阳)</title>
+<title>马昊阳</title>
 
 <meta name="google-site-verification" content="q8DtGMRIbR6QaJVsuBq_ia7dVYog6Z1o9Lwm4-AZP-w" />
-<meta name="description" content="The personal website of Haoyang Ma.">
+<meta name="description" content="The personal website of <u>Haoyang Ma</u>.">
 
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <!--
@@ -22,6 +22,48 @@
 
 
 <link href="https://fonts.googleapis.com/css?family=Noto Sans" rel="stylesheet" type="text/css" />
+<style>
+    /* 新增容器用于定位 */
+    .wechat-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    /* 模态框样式 */
+    .modal {
+        display: none;
+        position: auto;
+        z-index: 1;
+        background-color: #fefefe;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        width: 180px;  /* 根据二维码尺寸调整 */
+        bottom: 100%;  /* 显示在图标上方 */
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    /* 鼠标悬停时显示模态框 */
+    .wechat-container:hover .modal {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    /* 二维码图片样式 */
+    .modal img {
+        width: 100%;
+        height: auto;
+    }
+
+    /* 淡入动画 */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, 10px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+    }
+</style>
+</head>
 
 <style type="text/css">
 
@@ -125,10 +167,10 @@ body {
     margin-bottom: 30px;
 }
 .left-column {
-    flex: 3;
+    flex: 3.5;
 }
 .right-column {
-    flex: 1;
+    flex: 0.5;
 }
 .news-container {
     background-color: white;
@@ -150,6 +192,7 @@ h2 {
     padding-bottom: -10px;
 }
 </style>
+<script src="https://kit.fontawesome.com/16a6d69a06.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -161,22 +204,43 @@ h2 {
             <!-- &nbsp;&nbsp;&nbsp;&nbsp;
             <b> <a href="https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing">C.V.</a> </b> -->
             &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en">Google Scholar</a></b>
+            <b> <a href="https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en"><i class="fa-brands fa-google-scholar"></i></a></b>
             &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="https://www.linkedin.com/in/haoyang-ma-a870b01b6/">Linkedin</a></b>
+            <b> <a href="https://www.linkedin.com/in/haoyang-ma-a870b01b6/"><i class="fa-brands fa-linkedin"></i></a></b>
             &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="mailto:haoyang.ma@connect.ust.hk">Email</a></b>
+            <b> <a href="mailto:haoyang.ma@connect.ust.hk"><i class="fa-solid fa-envelope"></i></a></b>
             &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="./notes.html">Notes</a></b>
+            <b> <a href="https://github.com/haoyang9804"><i class="fa-brands fa-github"></i></a></b>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <!-- 点击微信图标触发模态框 -->
+            <div class="wechat-container">
+                <b> 
+                    <a href="#" class="wechat-link">
+                        <i class="fa-brands fa-weixin"></i>
+                    </a>
+                </b>
+                <!-- 模态框移动到容器内部 -->
+                <div class="modal">
+                    <img src="./wechat.jpg" alt="WeChat QR Code">
+                    <p style="margin:10px 0 0; color: #666; font-size: 0.9em;">Scan to add me</p>
+                </div>
+            </div>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <b> <a href="./notes.html"><i class="fa-solid fa-note-sticky"></i></a></b>
             </div>
 
-            <div class="bio-container">
-                <div class="left-column">
+            <!-- 模态框 -->
+            <div id="myModal" class="modal">
+                <!-- 显示微信二维码图片 -->
+                <img src="./wechat.jpg" alt="WeChat QR Code" style="max-width: 30%;">
+            </div>
+
+            <div class="new-container">
+                <!-- <div class="left-column"> -->
                     <!-- <h2 style="width: 100%; text-align: left;"> Bio </h2> -->
                     <p align="justify" >
-                        <br>PhD candidate at Hong Kong University of Science and Technology, <a href="http://castle.cse.ust.hk/">Castle group</a>.
-                        <br>Visiting researcher at Imperial College London, <a href="https://fastpl.doc.ic.ac.uk/">fastPL group</a>.
-                        <br>Compiler engineer intern in SiliconFlow, Intel, and Huawei HK.
+                        <br>PhD candidate at Hong Kong University of Science and Technology, <a href="http://castle.cse.ust.hk/">Castle group</a>, supervised by <a href="https://www.cse.ust.hk/~scc/">S.C. CHEUNG</a>.
+                        <br>Visiting researcher at Imperial College London, <a href="https://fastpl.doc.ic.ac.uk/">fastPL group</a>, advised by <a href="https://www.doc.ic.ac.uk/~afd/">Alastair F. Donaldson</a>.
                     </p>
          
                     <p align="justify" >
@@ -186,12 +250,13 @@ h2 {
                     </p>
         
                     <p align="justify" >
-                        Until now, my <a href="https://sites.google.com/view/qingchaoshen">collaborator</a> and I have studied over 1000 compiler bugs (including 603 deep learning compiler bugs and 533 Solidity compiler bugs) and detected more than 200 compiler bugs (For instance, Solidity compiler bugs: <a href="https://github.com/ethereum/solidity/issues?q=author%3Ahaoyang9804">😀</a>, <a href="https://github.com/hyperledger-solang/solang/issues?q=author%3Ahaoyang9804">🙃</a>; deep learning compiler bugs: <a href="https://github.com/apache/tvm/issues?q=author%3Ajikechao">😃</a>, <a href="https://github.com/apache/tvm/issues?q=author%3Ahaoyang9804">😆</a>).
+                        Until now, my <a href="https://sites.google.com/view/qingchaoshen">collaborator</a> and I have studied over 1000 compiler bugs (including 603 deep learning compiler bugs and 533 Solidity compiler bugs) and detected more than 300 compiler bugs (For instance, Solidity compiler bugs: <a href="https://github.com/ethereum/solidity/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bug"></i></a>, <a href="https://github.com/hyperledger-solang/solang/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bugs"></i></a>; deep learning compiler bugs: <a href="https://github.com/apache/tvm/issues?q=author%3Ajikechao"><i class="fa-solid fa-virus"></i></a>, <a href="https://github.com/apache/tvm/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-viruses"></i></a>).
                     </p>
-                </div>
-                <div class="right-column">
-                    <img style="float: down; margin-left: 20px; padding-bottom: 10px;" src="birdy.jpg" alt="photo" width="175" class="profile-pic" /> 
-                </div>
+                <!-- </div> -->
+                <!-- </div> -->
+                <!-- <div class="right-column">
+                    <img style="float: down; margin-left: 20px; padding-bottom: 10px;" src="birdy.jpg" alt="photo" width="150" class="profile-pic" /> 
+                </div> -->
             </div>
             <div class="news-container">
                 <p align="justify" >
@@ -214,48 +279,51 @@ h2 {
             <!-- <hr style="width: 100%"> -->
 
 		<h2 style="width: 100%; text-align: left;"> Publication </h2>
-        
-        <!-- <p align="justify" >
-            * = first co-author
-        </p> -->
 
         <table style="width: 100%;">
-        <tbody>
-            <tr>
-            <td scope="row"><strong> [<a href="https://conf.researchr.org/home/icse-2025">ICSE '25</a>] A Tale of Two DL Cities: When Library Tests Meet Compiler </strong></td>
-            <td style="text-align: right"><a href="https://arxiv.org/abs/2407.16626" target="_blank" onclick="trackOutboundLink('https:'); return false;">arXiv</a></td>
-            </tr>
-            <tr>
-            <td scope="row"><strong> [<a href="https://conf.researchr.org/home/issta-2024">ISSTA '24</a>] Towards Understanding Solidity Compiler Bugs </strong></td>
-            <td style="text-align: right"><a href="https://arxiv.org/abs/2407.05981" target="_blank" onclick="trackOutboundLink('https:'); return false;">arXiv</a></td>
-            </tr>
-            <tr>
-            <td scope="row"><strong> [<a href="https://conf.researchr.org/home/issta-2023">ISSTA '23</a>] Fuzzing Deep Learning Compilers with HirGen </strong></td>
-            <td style="text-align: right"><a href="https://arxiv.org/abs/2208.02193" target="_blank" onclick="trackOutboundLink('https:'); return false;">arXiv</a></td>
-            </tr>
-            <tr>
-            <td scope="row"><strong> [<a href="https://2021.esec-fse.org/">FSE '21</a>] A Comprehensive Study of Deep Learning Compiler Bugs </strong></td>
-            <td style="text-align: right"><a href="papers/fse21.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;">pdf</a></td>
-            </tr>
-            <tr>
-            <td scope="row"><strong> [<a href="https://conf.researchr.org/home/ase-2020">ASE '20</a>] Enhanced Compiler Bug Isolation via Memoized Search </strong></td>
-            <td style="text-align: right"><a href="papers/ase20.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;">pdf</a></td>
-            </tr>           
-            <td scope="row"><strong> A Survey of Modern Compiler Fuzzing (Ongoing Work, rubbish for now&#128517;) </strong></td>
-            <td style="text-align: right"><a href="https://arxiv.org/abs/2306.06884" target="_blank" onclick="trackOutboundLink('https:'); return false;">arxiv</a>
-        </tbody>
-        </table>
-
+            <tbody>
+              <tr>
+                <td scope="row"><strong> [ICSE '25] A Tale of Two DL Cities: When Library Tests Meet Compiler </strong>Qingchao Shen, Yongqiang Tian, <u>Haoyang Ma</u>, Junjie Chen, Lili Huang, Ruifeng Fu, Shing-Chi Cheung, Zan Wang</td>
+                <td style="text-align: right"><a href="https://arxiv.org/abs/2407.16626" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+              </tr>
+              <tr>
+                <td scope="row"><strong> [ISSTA '24] Towards Understanding Solidity Compiler Bugs</strong> <u>Haoyang Ma</u>, Wuqi Zhang, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung</td>
+                <td style="text-align: right"><a href="https://arxiv.org/pdf/2407.16626" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+              </tr>
+              <tr>
+                <td scope="row"><strong> [ISSTA '23] Fuzzing Deep Learning Compilers with HirGen </strong> <u>Haoyang Ma</u>, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung</td>
+                <td style="text-align: right"><a href="https://arxiv.org/pdf/2208.02193" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+              </tr>
+              <tr>
+                <td scope="row"><strong> [FSE '21] A Comprehensive Study of Deep Learning Compiler Bugs </strong> Qingchao Shen, <u>Haoyang Ma</u>, Junjie Chen, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen</td>
+                <td style="text-align: right"><a href="papers/fse21.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+              </tr>
+              <tr>
+                <td scope="row"><strong> [ASE '20] Enhanced Compiler Bug Isolation via Memoized Search </strong> Junjie Chen, <u>Haoyang Ma*</u>, Lingming Zhang</td>
+                <td style="text-align: right"><a href="papers/ase20.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+              </tr>
+              <tr>
+                <td scope="row"><strong> [pre-print] A Survey of Modern Compiler Fuzzing </strong></td>
+                <td style="text-align: right"><a href="https://arxiv.org/pdf/2306.06884" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+              </tr>
+              <tr>
+                <td scope="row"><strong> [pre-print] From Informal to Formal--Incorporating and Evaluating LLMs on Natural Language Requirements to Verifiable Formal Proofs </strong> Jialun Cao, Yaojie Lu, Meiziniu Li, <u>Haoyang Ma</u>, Haokun Li, Mengda He, Cheng Wen, Le Sun, Hongyu Zhang, Shengchao Qin, Shing-Chi Cheung, Cong Tian</td>
+                <td style="text-align: right"><a href="https://arxiv.org/pdf/2501.16207" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="font-size: smaller; margin-top: 10px;"><sup>*</sup> indicates co-first authorship.</p>
     
         <h2 style="width: 100%; text-align: left;"> Experience </h2>
+        <strong> &#128073;Huawei HK (upcoming)</strong>: Research Intern, June 2025 ~ <i class="fa-solid fa-infinity"></i><br>
         <strong> &#128073;Imperial College London </strong>: Visiting Researcher, Sep 2024 ~ Feb 2025<br>
         <strong> &#128073;Intel </strong>: Compiler Engineer Intern, Feb 2024 ~ Jul 2024<br>
         <strong> &#128073;SiliconFlow </strong>: AI Framework Development Intern, Dec 2023 ~ Feb 2024<br>
-        <strong> &#128073;HKUST </strong>: PhD Candidate, Sep 2021 ~ Feb 2026 (expected)<br>
+        <strong> &#128073;HKUST </strong>: PhD Candidate, Sep 2021 ~ Dec 2025 (expected)<br>
         <strong> &#128073;Tianjin University </strong>: Undergraduate, Aug 2016 ~ Aug 2020<br>
 
         <h2 style="width: 100%; text-align: left;"> Services </h2>
-        Conference Paper (Co-)Reviewer: ISSTA '21 '23, AIWare '24, ISSRE' 24, ICSE' 25, FSE '25, ISSTA '25.
+        Conference Paper (Co-) Reviewer: ISSTA '21 '23, AIWare '24, ISSRE' 24, ICSE' 25, FSE '25, ISSTA '25.
         <br>
         Journal Paper Reviewer: TSE
 
@@ -280,7 +348,7 @@ h2 {
     </center>
 		
         <footer>
-            <p>Copyright © 2024 Haoyang Ma</p>
+            <p>Copyright © 2024 <u>Haoyang Ma</u></p>
         </footer>
 </body>
 </html>
