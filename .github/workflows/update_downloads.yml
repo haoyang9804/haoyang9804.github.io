@@ -22,7 +22,9 @@ jobs:
         pip install requests
     
     - name: Run download count script
-      run: python download_count_script.py
+      run: |
+          python fetch_fm_model_downloads.py
+          python fetch_erwin_downloads.py
     
     - name: Commit and push if changed
       run: |

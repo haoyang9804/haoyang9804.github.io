@@ -38,5 +38,5 @@ badge_data = {
     "color": "blue"
 }
 
-with open("downloads_badge.json", "w") as f:
+with open("downloads_fm_badge.json", "w") as f:
     json.dump(badge_data, f)
