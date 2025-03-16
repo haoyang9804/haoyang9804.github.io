@@ -2,7 +2,7 @@ name: Update Download Count
 # on:
 #   push:
 #     branches:
-      - master
+#       - master
 on:
   schedule:
     - cron: '0 0 * * *'  # Runs daily at midnight UTC
