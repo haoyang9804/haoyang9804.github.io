@@ -2,7 +2,7 @@ import requests
 import json
 
 organization = "fm-universe"
-base_url = f"https://huggingface.co/api/models?author={organization}&per_page=100"
+base_url = f"https://huggingface.co/api/models?author={organization}&per_page=100\&expand[]=downloads&expand[]=downloadsAllTime"
 total_downloads = 0
 
 try:
@@ -14,7 +14,7 @@ try:
         # Process current page
         models = response.json()
         for model in models:
-            total_downloads += model.get("downloads", 0)
+            total_downloads += model.get("downloadsAllTime", 0)
         
         # Check for next page in Link header
         link_header = response.headers.get('Link', '')
