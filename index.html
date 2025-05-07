@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
@@ -66,20 +65,57 @@
 
 <style>
     .paper-tag {
-        background-color: rgb(241, 153, 188);
+        background-color: #002aff26;
         color: #000000;
-        padding: 1px 1px;
-        border-radius: 1px;
-        font-family: Arial, sans-serif;
-        font-weight: bold;
-        font-size: 10px;
-        display: inline-block;
-        text-align: center;     
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-weight: 500;
+        font-size: 11px;
+        display: inline-flex;
+        text-align: center;
         align-items: center;
         justify-content: center;
-        width: 50px;
+        min-width: 60px;
         height: 20px;
         overflow: hidden;
+        border: 1px solid #ffffff4d;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px #ffffff0d;
+    }
+
+    .paper-tag:hover {
+        background-color: rgba(247, 2, 186, 0.25);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<style>
+    .preprint-tag {
+        background-color: rgba(247, 2, 186, 0.25);
+        color: hsl(0, 0%, 0%);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-weight: 500;
+        font-size: 11px;
+        display: inline-flex;
+        text-align: center;
+        align-items: center;
+        justify-content: center;
+        min-width: 60px;
+        height: 20px;
+        overflow: hidden;
+        border: 1px solid #ffffff4d;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px #ffffff0d;
+    }
+
+    .preprint-tag:hover {
+        background-color: #002aff26;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 </style>
 
@@ -218,7 +254,6 @@ h2 {
 <body>
             <div style="display: flex; align-items: center; justify-content: center; position: relative;">
                 <h1 style="text-align: center; flex-grow: 1;">Ma Haoyang</h1>
-                <!-- <img src="1.png" alt="Profile Picture" style="width: 200px; height: auto; position: absolute; right: 0;"> -->
             </div>
 
             <hr style="width: 100%">
@@ -256,22 +291,16 @@ h2 {
                         <br>PhD candidate at Hong Kong University of Science and Technology, <a href="http://castle.cse.ust.hk/">Castle group</a>.
                         <br>Visiting researcher at Imperial College London, <a href="https://fastpl.doc.ic.ac.uk/">fastPL group</a>.
                     </p>
-                     
                     <p align="justify">
                         My research spans the areas of software engineering, programming languages, and their intersection with AI, including
                         <strong>bug analysis</strong>, <strong>bug detection</strong>, <strong>bug localization</strong> and <strong>LLM-empowered programming</strong>.
                         <br>I'm also interested in <u>translation validation</u> and <u>automated reasoning</u>.
                     </p>
-                    
                     <p align="justify">
                         Until now, my <a href="https://sites.google.com/view/qingchaoshen">collaborator</a> and I have studied over 1000 compiler bugs (including 603 deep learning compiler bugs and 533 Solidity compiler bugs) and detected more than 300 compiler bugs (For instance, Solidity compiler bugs: <a href="https://github.com/ethereum/solidity/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bug"></i></a>, <a href="https://github.com/hyperledger-solang/solang/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bugs"></i></a>; deep learning compiler bugs: <a href="https://github.com/apache/tvm/issues?q=author%3Ajikechao"><i class="fa-solid fa-virus"></i></a>, <a href="https://github.com/apache/tvm/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-viruses"></i></a>).
                     </p>
                 </div>
-                <div style="flex: 1.5; text-align: right; padding-left: 20px;">
-                    <img src="1.png" alt="Profile Picture" style="width: 300px; height: auto; margin-top: 20px;">
-                </div>
             </div>
-            
             <!-- <div class="news-container">
                 <p align="justify" >
                     I'm now working on developing Erwin
@@ -321,23 +350,22 @@ h2 {
                 <td style="text-align: right"><a href="papers/ase20.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
               </tr>
               <tr>
-                <td scope="row"><strong> <div class="paper-tag">Pre-print</div> A Survey of Modern Compiler Fuzzing </strong> <u>Haoyang Ma</u> </td>
+                <td scope="row"><strong> <div class="preprint-tag">preprint</div> A Survey of Modern Compiler Fuzzing </strong> <u>Haoyang Ma</u> </td>
                 <td style="text-align: right"><a href="https://arxiv.org/pdf/2306.06884" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
               </tr>
               <tr>
-                <td scope="row"><strong> <div class="paper-tag">Pre-print</div> From Informal to Formal--Incorporating and Evaluating LLMs on Natural Language Requirements to Verifiable Formal Proofs </strong> Jialun Cao, Yaojie Lu, Meiziniu Li, <u>Haoyang Ma</u>, Haokun Li, Mengda He, Cheng Wen, Le Sun, Hongyu Zhang, Shengchao Qin, Shing-Chi Cheung, Cong Tian <a href="https://huggingface.co/fm-universe"><img src="https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=fm-universe&logoColor=000)"></a> <img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_fm_badge.json&query=%24.message&label=Downloads&color=pink">
+                <td scope="row"><strong> <div class="preprint-tag">preprint</div> From Informal to Formal--Incorporating and Evaluating LLMs on Natural Language Requirements to Verifiable Formal Proofs </strong> Jialun Cao, Yaojie Lu, Meiziniu Li, <u>Haoyang Ma</u>, Haokun Li, Mengda He, Cheng Wen, Le Sun, Hongyu Zhang, Shengchao Qin, Shing-Chi Cheung, Cong Tian <a href="https://huggingface.co/fm-universe"><img src="https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=fm-universe&logoColor=000)"></a> <img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_fm_badge.json&query=%24.message&label=Downloads&color=pink">
                 </td> 
                 <td style="text-align: right"><a href="https://arxiv.org/pdf/2501.16207" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
               </tr>
               <tr>
-                <td scope="row"><strong> <div class="paper-tag">Pre-print</div> Bounded Exhaustive Random Program Generation for Testing Solidity Compilers and Analyzers</strong> <u>Haoyang Ma</u>, Alastair F. Donaldson, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung <a href="https://github.com/haoyang9804/Erwin"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/haoyang9804/Erwin"></a>
+                <td scope="row"><strong> <div class="preprint-tag">preprint</div> Bounded Exhaustive Random Program Generation for Testing Solidity Compilers and Analyzers</strong> <u>Haoyang Ma</u>, Alastair F. Donaldson, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung <a href="https://github.com/haoyang9804/Erwin"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/haoyang9804/Erwin"></a>
                     <a href="https://www.npmjs.com/package/@__haoyang__/erwin"><img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_erwin_badge.json&query=%24.message&label=Downloads&color=pink"></a></td>
                 <td style="text-align: right"><a href="https://arxiv.org/pdf/2503.20332" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
               </tr>
             </tbody>
           </table>
           <p style="font-size: smaller; margin-top: 10px;"><sup>*</sup> indicates co-first authorship.</p>
-    
         <h2 style="width: 100%; text-align: left;"> Experience </h2>
         <strong> Huawei HK (upcoming)</strong>: Research Intern, June 2025 ~ <i class="fa-solid fa-infinity"></i><br>
         <strong> Imperial College London </strong>: Visiting Researcher, Sep 2024 ~ Feb 2025<br>
@@ -368,11 +396,6 @@ h2 {
         Research Travel Grant (2023, 2024)
         <br>
         Overseas Research Award (2024)
-
-    
-    
-    </center>
-		
         <footer>
             <p>Copyright © 2024 <u>Haoyang Ma</u></p>
         </footer>
