@@ -22,157 +22,502 @@
 
 <link href="https://fonts.googleapis.com/css?family=Noto Sans" rel="stylesheet" type="text/css" />
 <style>
-    /* 新增容器用于定位 */
+    /* WeChat container for positioning */
     .wechat-container {
         position: relative;
         display: inline-block;
     }
 
-    /* 模态框样式 */
+    /* Modal box styling */
     .modal {
         display: none;
         position: absolute;
-        z-index: 1;
-        background-color: #fefefe;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        width: 180px;  /* 根据二维码尺寸调整 */
-        top: 100%;  /* 显示在图标下方 */
+        z-index: 1000;
+        background-color: #ffffff;
+        padding: 18px;
+        border: 2px solid #e8ecf1;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        width: 200px;
+        top: calc(100% + 12px);
         left: 50%;
         transform: translateX(-50%);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* 鼠标悬停时显示模态框 */
+    /* Show modal on hover */
     .wechat-container:hover .modal {
         display: block;
-        animation: fadeIn 0.3s ease;
+        animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* 二维码图片样式 */
+    /* QR code image styling */
     .modal img {
         width: 100%;
         height: auto;
+        border-radius: 8px;
+        display: block;
     }
 
-    /* 淡入动画 */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translate(-50%, 10px); }
-        to { opacity: 1; transform: translate(-50%, 0); }
+    /* Fade in animation */
+    @keyframes modalFadeIn {
+        from { 
+            opacity: 0; 
+            transform: translate(-50%, -10px) scale(0.95); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translate(-50%, 0) scale(1); 
+        }
+    }
+    
+    .modal p {
+        margin: 12px 0 0;
+        color: #6b7280;
+        font-size: 0.85em;
+        text-align: center;
     }
 </style>
 
 <style>
     .paper-tag {
-        background-color: #002aff26;
-        color: #000000;
-        padding: 2px 8px;
-        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(8, 112, 169, 0.15) 0%, rgba(8, 112, 169, 0.08) 100%);
+        color: #0870a9;
+        padding: 4px 10px;
+        border-radius: 8px;
         font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
-        font-weight: 500;
-        font-size: 11px;
+        font-weight: 600;
+        font-size: 10.5px;
         display: inline-flex;
         text-align: center;
         align-items: center;
         justify-content: center;
-        min-width: 60px;
-        height: 20px;
+        min-width: 65px;
+        height: 22px;
         overflow: hidden;
-        border: 1px solid #ffffff4d;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 2px #ffffff0d;
+        border: 1.5px solid rgba(8, 112, 169, 0.2);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(8, 112, 169, 0.1);
+        letter-spacing: 0.3px;
     }
 
     .paper-tag:hover {
-        background-color: rgba(247, 2, 186, 0.25);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, rgba(247, 2, 186, 0.2) 0%, rgba(247, 2, 186, 0.12) 100%);
+        color: #d100a8;
+        border-color: rgba(247, 2, 186, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(247, 2, 186, 0.2);
     }
 </style>
 
 <style>
     .preprint-tag {
-        background-color: rgba(247, 2, 186, 0.25);
-        color: hsl(0, 0%, 0%);
-        padding: 2px 8px;
-        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(247, 2, 186, 0.2) 0%, rgba(247, 2, 186, 0.12) 100%);
+        color: #d100a8;
+        padding: 4px 10px;
+        border-radius: 8px;
         font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
-        font-weight: 500;
-        font-size: 11px;
+        font-weight: 600;
+        font-size: 10.5px;
         display: inline-flex;
         text-align: center;
         align-items: center;
         justify-content: center;
-        min-width: 60px;
-        height: 20px;
+        min-width: 70px;
+        height: 22px;
         overflow: hidden;
-        border: 1px solid #ffffff4d;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 2px #ffffff0d;
+        border: 1.5px solid rgba(247, 2, 186, 0.25);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(247, 2, 186, 0.15);
+        letter-spacing: 0.3px;
     }
 
     .preprint-tag:hover {
-        background-color: #002aff26;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, rgba(8, 112, 169, 0.2) 0%, rgba(8, 112, 169, 0.12) 100%);
+        color: #0870a9;
+        border-color: rgba(8, 112, 169, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(8, 112, 169, 0.2);
     }
 </style>
 
 </head>
 
 <style type="text/css">
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
 
 body {
-	background-color: #FFF;
-	text-align: left;
-	font-size: 11pt;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    background-attachment: fixed;
+    text-align: left;
+    font-size: 11pt;
+    font-family: 'Noto Sans', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: rgb(42,50,65); 
+    margin: 0;
+    padding: 40px 20px;
+    line-height: 1.7;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 100vh;
+}
 
-	font-family: 'Noto Sans', 'Open Sans', sans-serif;
+/* Main content container */
+.main-container {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 60px 70px;
+    margin-top: 20px;
+    animation: fadeIn 0.6s ease-out;
+}
 
-	color: rgb(42,50,65); 
-	margin: auto;
-    width: 900px;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
-ol.pubs {
-    font-size: 10.5pt;
+
+h1 {
+    font-size: 36pt;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+    color: #1a202c;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #2a3241 0%, #0870a9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
-h1, h2, h3 {
-	font-weight: normal;
+
+h2 {
+    font-size: 22pt;
+    font-weight: 600;
+    margin-top: 2.8em;
+    margin-bottom: 1.2em;
+    padding-bottom: 0.6em;
+    border-bottom: 3px solid #e8ecf1;
+    color: #2a3241;
+    letter-spacing: -0.3px;
+    position: relative;
 }
-h2, h3 {
-	border-bottom-style: solid;
-	font-size: 15pt;
-	border-color: #EEE;
-	margin-top: 1.5em;
-	margin-bottom: 5px;
-    font: 1.5em/1.5em 'Noto Sans', 'Open Sans', sans-serif;
+
+h2::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #0870a9, #71CAFF);
+    border-radius: 2px;
 }
-h1 { font-size: 26pt; }
+
+
+h3 {
+    font-weight: 500;
+    font-size: 15pt;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    color: #2a3241;
+}
 
 a {
     color: #0870a9;
     text-decoration: none;
-    background-image: linear-gradient(to right, #0870a9 25%, rgba(255,255,255,0) 0%);
-    background-position: bottom;
-    background-size: 3px 1px;
-    background-repeat: repeat-x;
+    transition: all 0.25s ease;
+    border-bottom: 1.5px solid rgba(8, 112, 169, 0.25);
+    padding-bottom: 1px;
 }
+
 a:hover {
-    color: #71CAFF
+    color: #71CAFF;
+    border-bottom-color: #71CAFF;
+    transform: translateY(-1px);
 }
+
 a.papertitle {
     color: #70a808;
-    background-image: none;
+    border-bottom: none;
 }
+
 a.papertitle:hover {
     color: #95cb0b;
 }
 
+/* Header links styling */
+.headerlinks {
+    margin: 30px 0 40px 0;
+    padding: 20px 0;
+    border-top: 1px solid #e8ecf1;
+    border-bottom: 1px solid #e8ecf1;
+}
+
+.headerlinks a {
+    color: #6b7280;
+    font-size: 22px;
+    margin: 0 14px;
+    border-bottom: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.headerlinks a:hover {
+    color: #0870a9;
+    transform: translateY(-3px) scale(1.1);
+    background-color: rgba(8, 112, 169, 0.08);
+}
+
+.bio-container {
+    display: flex;
+    gap: 50px;
+    margin-bottom: 45px;
+    align-items: flex-start;
+}
+
+.left-column {
+    flex: 1;
+}
+
+.right-column {
+    flex-shrink: 0;
+}
+
+.profile-pic {
+    width: 200px;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 3px solid rgba(255, 255, 255, 0.8);
+}
+
+.profile-pic:hover {
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.bio-container p {
+    margin-bottom: 20px;
+    line-height: 1.85;
+    color: #4a5568;
+    font-size: 11.5pt;
+}
+
+.bio-container strong {
+    color: #1a202c;
+    font-weight: 600;
+    background: linear-gradient(120deg, rgba(8, 112, 169, 0.1) 0%, rgba(8, 112, 169, 0.05) 100%);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.bio-container u {
+    text-decoration: none;
+    border-bottom: 2px solid rgba(8, 112, 169, 0.3);
+    transition: all 0.2s ease;
+}
+
+.bio-container u:hover {
+    border-bottom-color: #0870a9;
+}
+
+/* Publication table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table tr {
+    transition: all 0.25s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+table tr:hover {
+    background-color: #f8fafc;
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 0 rgba(8, 112, 169, 0.2);
+}
+
+table td {
+    padding: 22px 0;
+    vertical-align: top;
+}
+
+table td:first-child {
+    padding-right: 25px;
+    line-height: 1.75;
+}
+
+table td:last-child {
+    text-align: right;
+    width: 60px;
+    padding-left: 15px;
+}
+
+table td a {
+    color: #6b7280;
+    font-size: 20px;
+    border-bottom: none;
+    transition: all 0.25s ease;
+    padding: 6px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+table td a:hover {
+    color: #0870a9;
+    background-color: rgba(8, 112, 169, 0.1);
+    transform: scale(1.15);
+}
+
+table td strong {
+    display: inline-block;
+    margin-bottom: 6px;
+    line-height: 1.6;
+}
+
+.paper-title {
+    font-style: italic;
+    font-weight: 600;
+    font-size: 1.05em;
+    color: #1a202c;
+}
+
+/* Section content styling */
+.section-content {
+    margin-top: 18px;
+    line-height: 2;
+    color: #4a5568;
+    font-size: 11.5pt;
+}
+
+.section-content strong {
+    color: #1a202c;
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.section-content br {
+    margin-bottom: 10px;
+}
+
+/* Footer styling */
+footer {
+    margin-top: 70px;
+    padding-top: 35px;
+    border-top: 2px solid #e8ecf1;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 10pt;
+}
+
+footer p {
+    margin: 0;
+}
+
+footer u {
+    color: #6b7280;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    body {
+        padding: 20px 15px;
+    }
+    
+    .main-container {
+        padding: 35px 30px;
+        border-radius: 12px;
+    }
+    
+    h1 {
+        font-size: 28pt;
+    }
+    
+    h2 {
+        font-size: 19pt;
+        margin-top: 2em;
+    }
+    
+    .bio-container {
+        flex-direction: column;
+        gap: 30px;
+    }
+    
+    .profile-pic {
+        width: 160px;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    .headerlinks {
+        padding: 15px 0;
+    }
+    
+    .headerlinks a {
+        margin: 0 10px;
+        font-size: 20px;
+    }
+    
+    table td {
+        padding: 18px 0;
+    }
+    
+    table tr:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .tabs-nav {
+        gap: 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .tabs-nav::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .tab-button {
+        padding: 10px 16px;
+        font-size: 13pt;
+        white-space: nowrap;
+    }
+    
+    .tabs-content {
+        min-height: 150px;
+    }
+}
+
+/* Utility classes */
+ol.pubs {
+    font-size: 10.5pt;
+}
+
 .newpadding {
-  padding-left: 2px;
-  padding-top: 3px;
-  padding-bottom: 2px;
+    padding-left: 2px;
+    padding-top: 3px;
+    padding-bottom: 2px;
 }
 
 .bpa {
@@ -182,83 +527,172 @@ a.papertitle:hover {
 }
 
 em {
-	font-size: 12pt;
-	font-style: normal;
-	color: #000;
+    font-size: 12pt;
+    font-style: normal;
+    color: #000;
 }
+
 li a.papertitle {
-	font-size: 13.5pt;
-	font-weight: normal;
+    font-size: 13.5pt;
+    font-weight: normal;
 }
+
 ol.pubs li ul {
-	padding: 0;
+    padding: 0;
 }
 
 ol.pubs li {
-	list-style-type: decimal-leading-zero;
-	margin-bottom: 1em;
-	padding-left: 0.5em;
+    list-style-type: decimal-leading-zero;
+    margin-bottom: 1em;
+    padding-left: 0.5em;
 }
+
 ol.pubs li li {
-	padding-left: 0;
+    padding-left: 0;
 }
 
 td.firstCol {
-    padding-right:5px;
+    padding-right: 5px;
     font-weight: 700;
     text-align: right;
     vertical-align: top;
 }
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 20px;
-    max-width: 1200px;
-    margin: auto;
-}
-.bio-container {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 30px;
-}
-.left-column {
-    flex: 3.5;
-}
-.right-column {
-    flex: 0.5;
-}
+
 .news-container {
     background-color: white;
     padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 30px;
 }
+
 .section {
     margin-bottom: 30px;
 }
-.profile-pic {
-    width: 200px;
-    height: auto;
-    align-self: flex-start;
-    margin-top: 40px; /* Adjust this value to lower the image */
+
+/* Paper tag improvements */
+.paper-tag, .preprint-tag {
+    margin-right: 8px;
+    margin-bottom: 4px;
+    vertical-align: middle;
 }
-h2 {
-    border-bottom: 0px solid #ccc;
-    padding-bottom: -10px;
+
+/* Improve badge spacing */
+table img {
+    margin-left: 8px;
+    vertical-align: middle;
+    transition: transform 0.2s ease;
+}
+
+table img:hover {
+    transform: scale(1.05);
+}
+
+/* Tab navigation styles */
+.tabs-container {
+    margin-top: 3em;
+    margin-bottom: 0;
+}
+
+.tabs-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: 3px solid #e8ecf1;
+    position: relative;
+}
+
+.tabs-nav {
+    --indicator-left: 0;
+    --indicator-width: 0;
+    --indicator-opacity: 0;
+}
+
+.tabs-nav::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: var(--indicator-left);
+    width: var(--indicator-width);
+    height: 3px;
+    background: linear-gradient(90deg, #0870a9, #71CAFF);
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: var(--indicator-opacity);
+}
+
+.tab-button {
+    cursor: pointer;
+    user-select: none;
+    padding: 14px 26px;
+    font-size: 15pt;
+    font-weight: 500;
+    color: #6b7280;
+    background: transparent;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    margin-bottom: -3px;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.tab-button:hover {
+    color: #0870a9;
+    background-color: rgba(8, 112, 169, 0.05);
+    transform: translateY(-2px);
+}
+
+.tab-button.active {
+    color: #0870a9;
+    font-weight: 600;
+    background-color: rgba(8, 112, 169, 0.08);
+}
+
+.tabs-content {
+    position: relative;
+    min-height: 200px;
+}
+
+.tab-panel {
+    display: none;
+    opacity: 0;
+    animation: fadeIn 0.4s ease-out forwards;
+    padding-top: 1.5em;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.collapsible-section {
+    display: none;
 }
 </style>
 <script src="https://kit.fontawesome.com/16a6d69a06.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
-            <div style="display: flex; align-items: center; justify-content: center; position: relative;">
-                <h1 style="text-align: center; flex-grow: 1;">Ma Haoyang</h1>
-            </div>
+    <div class="main-container">
+        <div style="text-align: center; margin-bottom: 10px;">
+            <h1 style="display: inline-block;">Ma Haoyang</h1>
+        </div>
 
-            <hr style="width: 100%">
-
-            <div id="menu-bar" class="headerlinks" style="text-align:center">
+        <div id="menu-bar" class="headerlinks" style="text-align:center">
             <!-- &nbsp;&nbsp;&nbsp;&nbsp;
             <b> <a href="https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing">C.V.</a> </b> -->
             &nbsp;&nbsp;&nbsp;&nbsp;
@@ -283,9 +717,9 @@ h2 {
             </div>
             &nbsp;&nbsp;&nbsp;&nbsp;
             <b> <a href="./notes.html"><i class="fa-solid fa-note-sticky"></i></a></b>
-            </div>
+        </div>
 
-            <div class="bio-container">
+        <div class="bio-container">
                 <div class="left-column">
                     <p align="justify">
                         <br>PhD candidate at Hong Kong University of Science and Technology, <a href="http://castle.cse.ust.hk/">Castle group</a>.
@@ -300,113 +734,175 @@ h2 {
                         Until now, my <a href="https://sites.google.com/view/qingchaoshen">collaborator</a> and I have studied over 1000 compiler bugs (including 603 deep learning compiler bugs and 533 Solidity compiler bugs) and detected more than 300 compiler bugs (For instance, Solidity compiler bugs: <a href="https://github.com/ethereum/solidity/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bug"></i></a>, <a href="https://github.com/hyperledger-solang/solang/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bugs"></i></a>; deep learning compiler bugs: <a href="https://github.com/apache/tvm/issues?q=author%3Ajikechao"><i class="fa-solid fa-virus"></i></a>, <a href="https://github.com/apache/tvm/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-viruses"></i></a>).
                     </p>
                 </div>
-                <div class="right-column">
-                    <img src="./birdy.jpg" alt="Profile" class="profile-pic", style="width: 150px; height: auto; align-self: flex-start; margin-top: 40px;">
-                </div>
+            <div class="right-column">
+                <img src="./birdy.jpg" alt="Profile" class="profile-pic">
             </div>
-            <!-- <div class="news-container">
-                <p align="justify" >
-                    I'm now working on developing Erwin
-                    <a href="https://github.com/haoyang9804/Erwin"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/haoyang9804/Erwin"></a>
-                    <a href="https://www.npmjs.com/package/@__haoyang__/erwin"><img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_erwin_badge.json&query=%24.message&label=Downloads&color=pink"></a>
-                    , a bounded exhausive Solidity program generator. It has found over 25 Solidity compiler bugs and it is still on the
-                    way to find more.
-                </p>
-            </div> -->
+        </div>
 
-            <script type="text/javascript">
-                document.getElementById('address').style.display = 'none';
-                document.getElementById('address_show_link').style.display = '';
-            </script>
-            </td>
-            </tr>
-            </tbody></table>
-
-            <!-- <hr style="width: 100%"> -->
-
-		<h2 style="width: 100%; text-align: left;"> Publication </h2>
-
-        <table style="width: 100%;">
+        <div class="tabs-container">
+            <div class="tabs-nav" id="tabsNav">
+                <button class="tab-button" onclick="toggleTab('publication', this)">Publication</button>
+                <button class="tab-button" onclick="toggleTab('experience', this)">Experience</button>
+                <button class="tab-button" onclick="toggleTab('services', this)">Services</button>
+                <button class="tab-button" onclick="toggleTab('teaching', this)">Teaching</button>
+                <button class="tab-button" onclick="toggleTab('award', this)">Award</button>
+            </div>
+            <div class="tabs-content">
+                <div id="publication" class="tab-panel">
+                    <table>
             <tbody>
                 <tr>
-                <td scope="row"><strong> <div class="paper-tag">ICSE '26</div> Optimization-Aware Test Generation for Deep Learning Compilers</strong> Qingchao Shen, Zan Wang, <u>Haoyang Ma</u>, Yongqiang Tian, Lili Huang, Zibo Xiao, Junjie Chen, Shing-Chi Cheung</td>
-              </tr>
-              <tr>
-                <td scope="row"><strong> <div class="paper-tag">ICSE '26</div> Bounded Exhaustive Random Program Generation for Testing Solidity Compilers and Analyzers</strong> <u>Haoyang Ma</u>, Alastair F. Donaldson, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung <a href="https://github.com/haoyang9804/Erwin"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/haoyang9804/Erwin"></a>
-                    <a href="https://www.npmjs.com/package/@__haoyang__/erwin"><img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_erwin_badge.json&query=%24.message&label=Downloads&color=pink"></a></td>
-                <td style="text-align: right"><a href="https://arxiv.org/pdf/2503.20332" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-              </tr>
-            <tr>
-                <td scope="row"><strong> <div class="paper-tag">ACL '25 Main</div> From Informal to Formal--Incorporating and Evaluating LLMs on Natural Language Requirements to Verifiable Formal Proofs </strong> Jialun Cao, Yaojie Lu, Meiziniu Li, <u>Haoyang Ma</u>, Haokun Li, Mengda He, Cheng Wen, Le Sun, Hongyu Zhang, Shengchao Qin, Shing-Chi Cheung, Cong Tian <a href="https://huggingface.co/fm-universe"><img src="https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=fm-universe&logoColor=000)"></a> <img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_fm_badge.json&query=%24.message&label=Downloads&color=pink">
-                </td> 
-                <td style="text-align: right"><a href="https://arxiv.org/pdf/2501.16207" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-              </tr>
-              <tr>
-                <td scope="row"><strong> <div class="paper-tag">FSE '25</div> An Empirical Study of Bugs in Data Visualization Libraries </strong>Weiqi Lu, Yongqiang Tian, Xiaohan Zhong, <u>Haoyang Ma</u>, Zhenyang Xu, Chengnian Sun</td>
-                <td style="text-align: right"><a href="https://arxiv.org/pdf/2506.15084" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-              </tr>
-              <tr>
-                <td scope="row"><strong> <div class="paper-tag">ICSE '25</div> A Tale of Two DL Cities: When Library Tests Meet Compiler</strong> Qingchao Shen, Yongqiang Tian, <u>Haoyang Ma</u>, Junjie Chen, Lili Huang, Ruifeng Fu, Shing-Chi Cheung, Zan Wang</td>
-                <td style="text-align: right"><a href="https://arxiv.org/pdf/2407.16626" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-              </tr>
-              <tr>
-                <td scope="row"><strong> <div class="paper-tag">ISSTA '24</div> Towards Understanding Solidity Compiler Bugs</strong> <u>Haoyang Ma</u>, Wuqi Zhang, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung</td>
-                <td style="text-align: right"><a href="https://arxiv.org/pdf/2407.05981" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-              </tr>
-              <tr>
-                <td scope="row"><strong> <div class="paper-tag">ISSTA '23</div> Fuzzing Deep Learning Compilers with HirGen </strong> <u>Haoyang Ma</u>, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung</td>
-                <td style="text-align: right"><a href="https://arxiv.org/pdf/2208.02193" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-              </tr>
-              <tr>
-                <td scope="row"><strong> <div class="paper-tag">FSE '21</div> A Comprehensive Study of Deep Learning Compiler Bugs </strong> Qingchao Shen, <u>Haoyang Ma</u>, Junjie Chen, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen</td>
-                <td style="text-align: right"><a href="papers/fse21.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-              </tr>
-              <tr>
-                <td scope="row"><strong> <div class="paper-tag">ASE '20</div> Enhanced Compiler Bug Isolation via Memoized Search </strong> Junjie Chen, <u>Haoyang Ma*</u>, Lingming Zhang</td>
-                <td style="text-align: right"><a href="papers/ase20.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-              </tr>
-              <tr>
-                <td scope="row"><strong> <div class="preprint-tag">preprint</div> A Survey of Modern Compiler Fuzzing </strong> <u>Haoyang Ma</u> </td>
-                <td style="text-align: right"><a href="https://arxiv.org/pdf/2306.06884" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-              </tr>
-              
+                    <td><strong><div class="paper-tag">ICSE '26</div> <span class="paper-title">Optimization-Aware Test Generation for Deep Learning Compilers</span></strong> Qingchao Shen, Zan Wang, <u>Haoyang Ma</u>, Yongqiang Tian, Lili Huang, Zibo Xiao, Junjie Chen, Shing-Chi Cheung</td>
+                    <td><a href="https://arxiv.org/pdf/2511.18918" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
+                <tr>
+                    <td><strong><div class="paper-tag">ICSE '26</div> <span class="paper-title">Bounded Exhaustive Random Program Generation for Testing Solidity Compilers and Analyzers</span></strong><br><span style="color: #d100a8; font-weight: 600;">(Directly Accepted in Round 2, Acceptance Rate: 8%, 72/809)</span><br> <u>Haoyang Ma</u>, Alastair F. Donaldson, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung <a href="https://github.com/haoyang9804/Erwin"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/haoyang9804/Erwin"></a>
+                        <a href="https://www.npmjs.com/package/@__haoyang__/erwin"><img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_erwin_badge.json&query=%24.message&label=Downloads&color=pink"></a></td>
+                    <td><a href="https://arxiv.org/pdf/2503.20332" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
+                <tr>
+                    <td><strong><div class="paper-tag">ACL '25 Main</div> <span class="paper-title">From Informal to Formal--Incorporating and Evaluating LLMs on Natural Language Requirements to Verifiable Formal Proofs</span></strong> Jialun Cao, Yaojie Lu, Meiziniu Li, <u>Haoyang Ma</u>, Haokun Li, Mengda He, Cheng Wen, Le Sun, Hongyu Zhang, Shengchao Qin, Shing-Chi Cheung, Cong Tian <a href="https://huggingface.co/fm-universe"><img src="https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=fm-universe&logoColor=000)"></a> <img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_fm_badge.json&query=%24.message&label=Downloads&color=pink"></td>
+                    <td><a href="https://arxiv.org/pdf/2501.16207" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
+                <tr>
+                    <td><strong><div class="paper-tag">FSE '25</div> An Empirical Study of Bugs in Data Visualization Libraries</strong> Weiqi Lu, Yongqiang Tian, Xiaohan Zhong, <u>Haoyang Ma</u>, Zhenyang Xu, Chengnian Sun</td>
+                    <td><a href="https://arxiv.org/pdf/2506.15084" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
+                <tr>
+                    <td><strong><div class="paper-tag">ICSE '25</div> A Tale of Two DL Cities: When Library Tests Meet Compiler</strong> Qingchao Shen, Yongqiang Tian, <u>Haoyang Ma</u>, Junjie Chen, Lili Huang, Ruifeng Fu, Shing-Chi Cheung, Zan Wang</td>
+                    <td><a href="https://arxiv.org/pdf/2407.16626" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
+                <tr>
+                    <td><strong><div class="paper-tag">ISSTA '24</div> Towards Understanding Solidity Compiler Bugs</strong> <u>Haoyang Ma</u>, Wuqi Zhang, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung</td>
+                    <td><a href="https://arxiv.org/pdf/2407.05981" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
+                <tr>
+                    <td><strong><div class="paper-tag">ISSTA '23</div> Fuzzing Deep Learning Compilers with HirGen</strong> <u>Haoyang Ma</u>, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung</td>
+                    <td><a href="https://arxiv.org/pdf/2208.02193" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
+                <tr>
+                    <td><strong><div class="paper-tag">FSE '21</div> A Comprehensive Study of Deep Learning Compiler Bugs</strong> Qingchao Shen, <u>Haoyang Ma</u>, Junjie Chen, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen</td>
+                    <td><a href="papers/fse21.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
+                <tr>
+                    <td><strong><div class="paper-tag">ASE '20</div> Enhanced Compiler Bug Isolation via Memoized Search</strong> Junjie Chen, <u>Haoyang Ma*</u>, Lingming Zhang</td>
+                    <td><a href="papers/ase20.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
+                <tr>
+                    <td><strong><div class="preprint-tag">preprint</div> A Survey of Modern Compiler Fuzzing</strong> <u>Haoyang Ma</u></td>
+                    <td><a href="https://arxiv.org/pdf/2306.06884" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
+                </tr>
             </tbody>
-          </table>
-          <p style="font-size: smaller; margin-top: 10px;"><sup>*</sup> indicates co-first authorship.</p>
-        <h2 style="width: 100%; text-align: left;"> Experience </h2>
+                    </table>
+                    <p style="font-size: smaller; margin-top: 15px; color: #8a95a5;"><sup>*</sup> indicates co-first authorship.</p>
+                </div>
 
-        <strong> Ant Group </strong>: Research Intern at Skyward Lab, working on web3 security, August 2025 ~ <i class="fa-solid fa-infinity"></i><br>
-        <strong> Huawei HK </strong>: Research Intern at Compiler Technologies Lab, June 2025 ~ August 2025<br>
-        <strong> Imperial College London </strong>: Visiting Researcher, Sep 2024 ~ Feb 2025<br>
-        <strong> Intel </strong>: Compiler Engineer Intern, Feb 2024 ~ Jul 2024<br>
-        <strong> SiliconFlow </strong>: AI Framework Development Intern, Dec 2023 ~ Feb 2024<br>
-        <strong> HKUST </strong>: PhD Candidate, Sep 2021 ~ Dec 2025 (expected)<br>
-        <strong> Tianjin University </strong>: Undergraduate, Aug 2016 ~ Aug 2020<br>
+                <div id="experience" class="tab-panel">
+                    <div class="section-content">
+                        <!-- <strong>Ant Group</strong>: Research Intern at Skyward Lab, working on web3 security, August 2025 ~ <i class="fa-solid fa-infinity"></i><br> -->
+                        <strong>Ant Group</strong>: Research Intern at Skyward Lab, working on web3 security, August 2025 ~ November 2025<br>
+                        <strong>Huawei HK</strong>: Research Intern at Compiler Technologies Lab, June 2025 ~ August 2025<br>
+                        <strong>Imperial College London</strong>: Visiting Researcher, Sep 2024 ~ Feb 2025<br>
+                        <strong>Intel</strong>: Compiler Engineer Intern, Feb 2024 ~ Jul 2024<br>
+                        <strong>SiliconFlow</strong>: AI Framework Development Intern, Dec 2023 ~ Feb 2024<br>
+                        <strong>HKUST</strong>: PhD Candidate, Sep 2021 ~ Dec 2025 (expected)<br>
+                        <strong>Tianjin University</strong>: Undergraduate, Aug 2016 ~ Aug 2020
+                    </div>
+                </div>
 
-        <h2 style="width: 100%; text-align: left;"> Services </h2>
-        Conference Paper (Co-) Reviewer: ISSTA '21 '23, AIWare '24, ISSRE' 24, ICSE' 25, FSE '25, ISSTA '25.
-        <br>
-        Journal Paper Reviewer: TSE
+                <div id="services" class="tab-panel">
+                    <div class="section-content">
+                        Conference Paper (Co-) Reviewer: ISSTA '21 '23, AIWare '24, ISSRE' 24, ICSE' 25, FSE '25, ISSTA '25.<br>
+                        Journal Paper Reviewer: TSE
+                    </div>
+                </div>
 
-        <h2 style="width: 100%; text-align: left;"> Teaching </h2>
-        I was the TA of the following courses.
-        <br>
-        COMP 3111 Software Engineering (Spring 2021-22)
-        <br>
-        COMP 2011 Programming With C++ (Fall 2022-23)
-        <br>
-        COMP 1021 Introduction to Computer Science (Fall 2023-24)
-        <br>
-        COMP 2011 Programming With C++ (Spring 2024-25)
+                <div id="teaching" class="tab-panel">
+                    <div class="section-content">
+                        I was the TA of the following courses.<br>
+                        COMP 3111 Software Engineering (Spring 2021-22)<br>
+                        COMP 2011 Programming With C++ (Fall 2022-23)<br>
+                        COMP 1021 Introduction to Computer Science (Fall 2023-24)<br>
+                        COMP 2011 Programming With C++ (Spring 2024-25)
+                    </div>
+                </div>
 
-        <h2 style="width: 100%; text-align: left;"> Award </h2>
-        HKUST Postgraduate Studentship (2021-2025)
-        <br>
-        Research Travel Grant (2023, 2024)
-        <br>
-        Overseas Research Award (2024)
+                <div id="award" class="tab-panel">
+                    <div class="section-content">
+                        Jindouyun (筋斗云) Talent Program from ByteDance (2025)<br>
+                        Ant Star Plan A (蚂蚁集团蚂蚁星Plan-A) (2025)<br>
+                        HKUST Postgraduate Studentship (2021-2025)<br>
+                        Research Travel Grant (2023, 2024)<br>
+                        Overseas Research Award (2024)
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer>
-            <p>Copyright © 2024 <u>Haoyang Ma</u></p>
+            <p>Copyright © 2025 <u>Haoyang Ma</u></p>
         </footer>
+    </div>
+
+    <script>
+        function toggleTab(tabId, buttonElement) {
+            const selectedPanel = document.getElementById(tabId);
+            const isActive = buttonElement.classList.contains('active');
+            
+            if (isActive) {
+                // If clicking the active tab, collapse it
+                buttonElement.classList.remove('active');
+                if (selectedPanel) {
+                    selectedPanel.classList.remove('active');
+                }
+                // Hide indicator when no tab is active
+                hideTabIndicator();
+            } else {
+                // Hide all other tab panels
+                const panels = document.querySelectorAll('.tab-panel');
+                panels.forEach(panel => {
+                    panel.classList.remove('active');
+                });
+                
+                // Remove active class from all buttons
+                const buttons = document.querySelectorAll('.tab-button');
+                buttons.forEach(button => {
+                    button.classList.remove('active');
+                });
+                
+                // Show selected tab panel
+                if (selectedPanel) {
+                    selectedPanel.classList.add('active');
+                }
+                
+                // Add active class to clicked button
+                buttonElement.classList.add('active');
+                
+                // Update indicator position
+                updateTabIndicator(buttonElement);
+            }
+        }
+        
+        function updateTabIndicator(activeButton) {
+            const nav = document.getElementById('tabsNav');
+            if (!nav || !activeButton) return;
+            
+            const buttonRect = activeButton.getBoundingClientRect();
+            const navRect = nav.getBoundingClientRect();
+            const left = buttonRect.left - navRect.left;
+            const width = buttonRect.width;
+            
+            nav.style.setProperty('--indicator-left', left + 'px');
+            nav.style.setProperty('--indicator-width', width + 'px');
+            nav.style.setProperty('--indicator-opacity', '1');
+        }
+        
+        function hideTabIndicator() {
+            const nav = document.getElementById('tabsNav');
+            if (!nav) return;
+            nav.style.setProperty('--indicator-opacity', '0');
+            nav.style.setProperty('--indicator-width', '0');
+        }
+    </script>
 </body>
 </html>
