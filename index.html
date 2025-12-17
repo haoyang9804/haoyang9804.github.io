@@ -20,128 +20,7 @@
 -->
 
 
-<link href="https://fonts.googleapis.com/css?family=Noto Sans" rel="stylesheet" type="text/css" />
-<style>
-    /* WeChat container for positioning */
-    .wechat-container {
-        position: relative;
-        display: inline-block;
-    }
-
-    /* Modal box styling */
-    .modal {
-        display: none;
-        position: absolute;
-        z-index: 1000;
-        background-color: #ffffff;
-        padding: 18px;
-        border: 2px solid #e8ecf1;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-        width: 200px;
-        top: calc(100% + 12px);
-        left: 50%;
-        transform: translateX(-50%);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* Show modal on hover */
-    .wechat-container:hover .modal {
-        display: block;
-        animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* QR code image styling */
-    .modal img {
-        width: 100%;
-        height: auto;
-        border-radius: 8px;
-        display: block;
-    }
-
-    /* Fade in animation */
-    @keyframes modalFadeIn {
-        from { 
-            opacity: 0; 
-            transform: translate(-50%, -10px) scale(0.95); 
-        }
-        to { 
-            opacity: 1; 
-            transform: translate(-50%, 0) scale(1); 
-        }
-    }
-    
-    .modal p {
-        margin: 12px 0 0;
-        color: #6b7280;
-        font-size: 0.85em;
-        text-align: center;
-    }
-</style>
-
-<style>
-    .paper-tag {
-        background: linear-gradient(135deg, rgba(8, 112, 169, 0.15) 0%, rgba(8, 112, 169, 0.08) 100%);
-        color: #0870a9;
-        padding: 4px 10px;
-        border-radius: 8px;
-        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
-        font-weight: 600;
-        font-size: 10.5px;
-        display: inline-flex;
-        text-align: center;
-        align-items: center;
-        justify-content: center;
-        min-width: 65px;
-        height: 22px;
-        overflow: hidden;
-        border: 1.5px solid rgba(8, 112, 169, 0.2);
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 2px 4px rgba(8, 112, 169, 0.1);
-        letter-spacing: 0.3px;
-    }
-
-    .paper-tag:hover {
-        background: linear-gradient(135deg, rgba(247, 2, 186, 0.2) 0%, rgba(247, 2, 186, 0.12) 100%);
-        color: #d100a8;
-        border-color: rgba(247, 2, 186, 0.3);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(247, 2, 186, 0.2);
-    }
-</style>
-
-<style>
-    .preprint-tag {
-        background: linear-gradient(135deg, rgba(247, 2, 186, 0.2) 0%, rgba(247, 2, 186, 0.12) 100%);
-        color: #d100a8;
-        padding: 4px 10px;
-        border-radius: 8px;
-        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
-        font-weight: 600;
-        font-size: 10.5px;
-        display: inline-flex;
-        text-align: center;
-        align-items: center;
-        justify-content: center;
-        min-width: 70px;
-        height: 22px;
-        overflow: hidden;
-        border: 1.5px solid rgba(247, 2, 186, 0.25);
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 2px 4px rgba(247, 2, 186, 0.15);
-        letter-spacing: 0.3px;
-    }
-
-    .preprint-tag:hover {
-        background: linear-gradient(135deg, rgba(8, 112, 169, 0.2) 0%, rgba(8, 112, 169, 0.12) 100%);
-        color: #0870a9;
-        border-color: rgba(8, 112, 169, 0.3);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(8, 112, 169, 0.2);
-    }
-</style>
-
-</head>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet" />
 
 <style type="text/css">
 * {
@@ -150,143 +29,71 @@
     padding: 0;
 }
 
-html {
-    scroll-behavior: smooth;
-}
-
 body {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
-    background-attachment: fixed;
+    background: #ffffff;
     text-align: left;
     font-size: 11pt;
-    font-family: 'Noto Sans', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: rgb(42,50,65); 
+    font-family: 'Source Sans 3', Georgia, 'Times New Roman', serif;
+    color: #333333;
     margin: 0;
     padding: 40px 20px;
-    line-height: 1.7;
-    max-width: 1000px;
+    line-height: 1.6;
+    max-width: 850px;
     margin-left: auto;
     margin-right: auto;
-    min-height: 100vh;
 }
 
-/* Main content container */
 .main-container {
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    padding: 60px 70px;
-    margin-top: 20px;
-    animation: fadeIn 0.6s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    padding: 20px 0;
 }
 
 h1 {
-    font-size: 36pt;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 28pt;
     font-weight: 700;
-    margin: 0 0 15px 0;
-    color: #1a202c;
-    letter-spacing: -1px;
-    background: linear-gradient(135deg, #2a3241 0%, #0870a9 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    margin: 0 0 8px 0;
+    color: #1a1a1a;
 }
 
 h2 {
-    font-size: 22pt;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 14pt;
     font-weight: 600;
-    margin-top: 2.8em;
-    margin-bottom: 1.2em;
-    padding-bottom: 0.6em;
-    border-bottom: 3px solid #e8ecf1;
-    color: #2a3241;
-    letter-spacing: -0.3px;
-    position: relative;
-}
-
-h2::after {
-    content: '';
-    position: absolute;
-    bottom: -3px;
-    left: 0;
-    width: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, #0870a9, #71CAFF);
-    border-radius: 2px;
-}
-
-
-h3 {
-    font-weight: 500;
-    font-size: 15pt;
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
-    color: #2a3241;
+    margin-top: 2em;
+    margin-bottom: 0.8em;
+    color: #1a1a1a;
+    border-bottom: 1px solid #cccccc;
+    padding-bottom: 0.3em;
 }
 
 a {
-    color: #0870a9;
+    color: #0066cc;
     text-decoration: none;
-    transition: all 0.25s ease;
-    border-bottom: 1.5px solid rgba(8, 112, 169, 0.25);
-    padding-bottom: 1px;
 }
 
 a:hover {
-    color: #71CAFF;
-    border-bottom-color: #71CAFF;
-    transform: translateY(-1px);
-}
-
-a.papertitle {
-    color: #70a808;
-    border-bottom: none;
-}
-
-a.papertitle:hover {
-    color: #95cb0b;
+    text-decoration: underline;
 }
 
 /* Header links styling */
 .headerlinks {
-    margin: 30px 0 40px 0;
-    padding: 20px 0;
-    border-top: 1px solid #e8ecf1;
-    border-bottom: 1px solid #e8ecf1;
+    margin: 15px 0 25px 0;
 }
 
 .headerlinks a {
-    color: #6b7280;
-    font-size: 22px;
-    margin: 0 14px;
-    border-bottom: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: inline-block;
-    padding: 8px;
-    border-radius: 8px;
+    color: #555555;
+    font-size: 18px;
+    margin-right: 20px;
 }
 
 .headerlinks a:hover {
-    color: #0870a9;
-    transform: translateY(-3px) scale(1.1);
-    background-color: rgba(8, 112, 169, 0.08);
+    color: #0066cc;
 }
 
 .bio-container {
     display: flex;
-    gap: 50px;
-    margin-bottom: 45px;
+    gap: 40px;
+    margin-bottom: 30px;
     align-items: flex-start;
 }
 
@@ -299,144 +106,117 @@ a.papertitle:hover {
 }
 
 .profile-pic {
-    width: 200px;
+    width: 180px;
     height: auto;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 3px solid rgba(255, 255, 255, 0.8);
-}
-
-.profile-pic:hover {
-    transform: scale(1.05) translateY(-5px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
 }
 
 .bio-container p {
-    margin-bottom: 20px;
-    line-height: 1.85;
-    color: #4a5568;
-    font-size: 11.5pt;
+    margin-bottom: 12px;
+    line-height: 1.7;
+    color: #333333;
+    text-align: justify;
 }
 
 .bio-container strong {
-    color: #1a202c;
     font-weight: 600;
-    background: linear-gradient(120deg, rgba(8, 112, 169, 0.1) 0%, rgba(8, 112, 169, 0.05) 100%);
-    padding: 2px 6px;
-    border-radius: 4px;
 }
 
 .bio-container u {
     text-decoration: none;
-    border-bottom: 2px solid rgba(8, 112, 169, 0.3);
-    transition: all 0.2s ease;
-}
-
-.bio-container u:hover {
-    border-bottom-color: #0870a9;
-}
-
-/* Publication table styling */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-table tr {
-    transition: all 0.25s ease;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-table tr:hover {
-    background-color: #f8fafc;
-    transform: translateX(4px);
-    box-shadow: -4px 0 0 0 rgba(8, 112, 169, 0.2);
-}
-
-table td {
-    padding: 22px 0;
-    vertical-align: top;
-}
-
-table td:first-child {
-    padding-right: 25px;
-    line-height: 1.75;
-}
-
-table td:last-child {
-    text-align: right;
-    width: 60px;
-    padding-left: 15px;
-}
-
-table td a {
-    color: #6b7280;
-    font-size: 20px;
-    border-bottom: none;
-    transition: all 0.25s ease;
-    padding: 6px;
-    border-radius: 6px;
-    display: inline-block;
-}
-
-table td a:hover {
-    color: #0870a9;
-    background-color: rgba(8, 112, 169, 0.1);
-    transform: scale(1.15);
-}
-
-table td strong {
-    display: inline-block;
-    margin-bottom: 6px;
-    line-height: 1.6;
-}
-
-.paper-title {
-    font-style: italic;
-    font-weight: 600;
-    font-size: 1.08em;
-    color: #1a202c;
-    letter-spacing: 0.2px;
+    border-bottom: 1px dashed #666666;
 }
 
 /* Section content styling */
 .section-content {
-    margin-top: 18px;
-    line-height: 2;
-    color: #4a5568;
-    font-size: 11.5pt;
+    margin-top: 12px;
+    line-height: 1.8;
+    color: #333333;
 }
 
 .section-content strong {
-    color: #1a202c;
     font-weight: 600;
-    margin-right: 4px;
+    margin-right: 3px;
 }
 
-.section-content br {
-    margin-bottom: 10px;
+/* Clickable link style */
+.clickable-link {
+    color: #0066cc;
+    cursor: pointer;
+    border-bottom: 1px dashed #0066cc;
 }
 
-/* Footer styling */
-footer {
-    margin-top: 70px;
-    padding-top: 35px;
-    border-top: 2px solid #e8ecf1;
-    text-align: center;
-    color: #9ca3af;
-    font-size: 10pt;
+.clickable-link:hover {
+    color: #004499;
+    border-bottom-style: solid;
 }
 
-footer p {
-    margin: 0;
+/* Modal/Sticky Note styling */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
 }
 
-footer u {
-    color: #6b7280;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(107, 114, 128, 0.3);
+.modal-overlay.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sticky-note {
+    background: #fffef0;
+    border: 1px solid #e0dcc8;
+    box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.15);
+    padding: 25px 30px;
+    max-width: 550px;
+    width: 90%;
+    position: relative;
+    font-size: 10.5pt;
+    line-height: 1.8;
+}
+
+.sticky-note::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #c9a227;
+}
+
+.sticky-note-title {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 13pt;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #1a1a1a;
+    border-bottom: 1px dashed #d0cbb8;
+    padding-bottom: 10px;
+}
+
+.sticky-note-content {
+    color: #444444;
+}
+
+.sticky-note-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #888888;
+    cursor: pointer;
+}
+
+.sticky-note-close:hover {
+    color: #333333;
 }
 
 /* Responsive design */
@@ -445,243 +225,25 @@ footer u {
         padding: 20px 15px;
     }
     
-    .main-container {
-        padding: 35px 30px;
-        border-radius: 12px;
-    }
-    
     h1 {
-        font-size: 28pt;
-    }
-    
-    h2 {
-        font-size: 19pt;
-        margin-top: 2em;
+        font-size: 22pt;
     }
     
     .bio-container {
         flex-direction: column;
-        gap: 30px;
+        gap: 20px;
     }
     
     .profile-pic {
-        width: 160px;
+        width: 140px;
         margin: 0 auto;
         display: block;
     }
     
-    .headerlinks {
-        padding: 15px 0;
-    }
-    
     .headerlinks a {
-        margin: 0 10px;
-        font-size: 20px;
+        margin-right: 15px;
+        font-size: 16px;
     }
-    
-    table td {
-        padding: 18px 0;
-    }
-    
-    table tr:hover {
-        transform: none;
-        box-shadow: none;
-    }
-    
-    .tabs-nav {
-        gap: 4px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-    }
-    
-    .tabs-nav::-webkit-scrollbar {
-        display: none;
-    }
-    
-    .tab-button {
-        padding: 10px 16px;
-        font-size: 13pt;
-        white-space: nowrap;
-    }
-    
-    .tabs-content {
-        min-height: 150px;
-    }
-}
-
-/* Utility classes */
-ol.pubs {
-    font-size: 10.5pt;
-}
-
-.newpadding {
-    padding-left: 2px;
-    padding-top: 3px;
-    padding-bottom: 2px;
-}
-
-.bpa {
-    color: #a80b08;
-    font-weight: bold;
-    font-size: 1.09em;
-}
-
-em {
-    font-size: 12pt;
-    font-style: normal;
-    color: #000;
-}
-
-li a.papertitle {
-    font-size: 13.5pt;
-    font-weight: normal;
-}
-
-ol.pubs li ul {
-    padding: 0;
-}
-
-ol.pubs li {
-    list-style-type: decimal-leading-zero;
-    margin-bottom: 1em;
-    padding-left: 0.5em;
-}
-
-ol.pubs li li {
-    padding-left: 0;
-}
-
-td.firstCol {
-    padding-right: 5px;
-    font-weight: 700;
-    text-align: right;
-    vertical-align: top;
-}
-
-.news-container {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    margin-bottom: 30px;
-}
-
-.section {
-    margin-bottom: 30px;
-}
-
-/* Paper tag improvements */
-.paper-tag, .preprint-tag {
-    margin-right: 8px;
-    margin-bottom: 4px;
-    vertical-align: middle;
-}
-
-/* Improve badge spacing */
-table img {
-    margin-left: 8px;
-    vertical-align: middle;
-    transition: transform 0.2s ease;
-}
-
-table img:hover {
-    transform: scale(1.05);
-}
-
-/* Tab navigation styles */
-.tabs-container {
-    margin-top: 3em;
-    margin-bottom: 0;
-}
-
-.tabs-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: 3px solid #e8ecf1;
-    position: relative;
-}
-
-.tabs-nav {
-    --indicator-left: 0;
-    --indicator-width: 0;
-    --indicator-opacity: 0;
-}
-
-.tabs-nav::after {
-    content: '';
-    position: absolute;
-    bottom: -3px;
-    left: var(--indicator-left);
-    width: var(--indicator-width);
-    height: 3px;
-    background: linear-gradient(90deg, #0870a9, #71CAFF);
-    border-radius: 2px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: var(--indicator-opacity);
-}
-
-.tab-button {
-    cursor: pointer;
-    user-select: none;
-    padding: 14px 26px;
-    font-size: 15pt;
-    font-weight: 500;
-    color: #6b7280;
-    background: transparent;
-    border: none;
-    border-radius: 8px 8px 0 0;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    margin-bottom: -3px;
-    white-space: nowrap;
-    font-family: inherit;
-}
-
-.tab-button:hover {
-    color: #0870a9;
-    background-color: rgba(8, 112, 169, 0.05);
-    transform: translateY(-2px);
-}
-
-.tab-button.active {
-    color: #0870a9;
-    font-weight: 600;
-    background-color: rgba(8, 112, 169, 0.08);
-}
-
-.tabs-content {
-    position: relative;
-    min-height: 200px;
-}
-
-.tab-panel {
-    display: none;
-    opacity: 0;
-    animation: fadeIn 0.4s ease-out forwards;
-    padding-top: 1.5em;
-}
-
-.tab-panel.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.collapsible-section {
-    display: none;
 }
 </style>
 <script src="https://kit.fontawesome.com/16a6d69a06.js" crossorigin="anonymous"></script>
@@ -689,147 +251,58 @@ table img:hover {
 
 <body>
     <div class="main-container">
-        <div style="text-align: center; margin-bottom: 10px;">
-            <h1 style="display: inline-block;">Ma Haoyang</h1>
-        </div>
+        <h1>Haoyang Ma (马昊阳)</h1>
 
-        <div id="menu-bar" class="headerlinks" style="text-align:center">
-            <!-- &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="https://docs.google.com/document/d/1jyXyyk7lvIkyzEn4W9R8akU0RtGbPSEgfCgbzDNWx8M/edit?usp=sharing">C.V.</a> </b> -->
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en"><i class="fa-brands fa-google-scholar"></i></a></b>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="https://www.linkedin.com/in/haoyang-ma-a870b01b6/"><i class="fa-brands fa-linkedin"></i></a></b>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="mailto:haoyang.ma@connect.ust.hk"><i class="fa-solid fa-envelope"></i></a></b>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="https://github.com/haoyang9804"><i class="fa-brands fa-github"></i></a></b>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <div class="wechat-container">
-                <b> 
-                    <a href="#">
-                        <i class="fa-brands fa-weixin"></i>
-                    </a>
-                </b>
-                <div class="modal">
-                    <img src="./wechat.jpg" alt="WeChat QR Code">
-                    <p style="margin:10px 0 0; color: #666; font-size: 0.9em;">Scan to add me</p>
-                </div>
-            </div>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <b> <a href="./notes.html"><i class="fa-solid fa-note-sticky"></i></a></b>
+        <div class="headerlinks">
+            <a href="https://scholar.google.com/citations?user=0-iO7hsAAAAJ&hl=en" target="_blank"><i class="fa-brands fa-google-scholar"></i></a>
+            <a href="https://www.linkedin.com/in/haoyang-ma-a870b01b6/"><i class="fa-brands fa-linkedin"></i></a>
+            <a href="mailto:haoyang.ma@connect.ust.hk"><i class="fa-solid fa-envelope"></i></a>
+            <a href="https://github.com/haoyang9804"><i class="fa-brands fa-github"></i></a>
         </div>
 
         <div class="bio-container">
                 <div class="left-column">
-                    <p align="justify">
-                        <br>PhD candidate at Hong Kong University of Science and Technology, <a href="http://castle.cse.ust.hk/">Castle group</a>.
-                        <br>Visiting researcher at Imperial College London, <a href="https://fastpl.doc.ic.ac.uk/">fastPL group</a>.
-                    </p>
-                    <p align="justify">
+                <p>
                         My research spans the areas of software engineering, programming languages, and their intersection with AI, including
                         <strong>bug analysis</strong>, <strong>bug detection</strong>, <strong>bug localization</strong> and <strong>LLM-empowered programming</strong>.
-                        <br>I'm also interested in <u>translation validation</u> and <u>automated reasoning</u>.
+                    I also have hands-on experience in <strong>AI infrastructure</strong>, and am interested in <u>translation validation</u> and <u>automated reasoning</u>.
                     </p>
-                    <p align="justify">
+                <!-- <p>
                         Until now, my <a href="https://sites.google.com/view/qingchaoshen">collaborator</a> and I have studied over 1000 compiler bugs (including 603 deep learning compiler bugs and 533 Solidity compiler bugs) and detected more than 300 compiler bugs (For instance, Solidity compiler bugs: <a href="https://github.com/ethereum/solidity/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bug"></i></a>, <a href="https://github.com/hyperledger-solang/solang/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bugs"></i></a>; deep learning compiler bugs: <a href="https://github.com/apache/tvm/issues?q=author%3Ajikechao"><i class="fa-solid fa-virus"></i></a>, <a href="https://github.com/apache/tvm/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-viruses"></i></a>).
-                    </p>
+                </p> -->
+                <p>
+                    See my <span class="clickable-link" onclick="openModal('experienceModal')">experience</span> and <span class="clickable-link" onclick="openModal('awardModal')">awards</span>.
+                </p>
                 </div>
             <div class="right-column">
-                <img src="./birdy.jpg" alt="Profile" class="profile-pic">
+                <img src="./birdy.jpg" alt="Haoyang Ma" class="profile-pic">
             </div>
         </div>
 
-        <div class="tabs-container">
-            <div class="tabs-nav" id="tabsNav">
-                <button class="tab-button" onclick="toggleTab('publication', this)">Publication</button>
-                <button class="tab-button" onclick="toggleTab('experience', this)">Experience</button>
-                <button class="tab-button" onclick="toggleTab('services', this)">Services</button>
-                <button class="tab-button" onclick="toggleTab('teaching', this)">Teaching</button>
-                <button class="tab-button" onclick="toggleTab('award', this)">Award</button>
-            </div>
-            <div class="tabs-content">
-                <div id="publication" class="tab-panel">
-                    <table>
-            <tbody>
-                <tr>
-                    <td><strong><div class="paper-tag">ICSE '26</div> <span class="paper-title">Optimization-Aware Test Generation for Deep Learning Compilers</span></strong> Qingchao Shen, Zan Wang, <u>Haoyang Ma</u>, Yongqiang Tian, Lili Huang, Zibo Xiao, Junjie Chen, Shing-Chi Cheung</td>
-                    <td><a href="https://arxiv.org/pdf/2511.18918" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-                <tr>
-                    <td><strong><div class="paper-tag">ICSE '26</div> <span class="paper-title">Bounded Exhaustive Random Program Generation for Testing Solidity Compilers</span></strong><br><span style="color: #d100a8; font-weight: 600;">(Directly Accepted in Round 2, Acceptance Rate: 8%, 72/809)</span><br> <u>Haoyang Ma</u>, Alastair F. Donaldson, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung <a href="https://github.com/haoyang9804/Erwin"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/haoyang9804/Erwin"></a>
-                        <a href="https://www.npmjs.com/package/@__haoyang__/erwin"><img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_erwin_badge.json&query=%24.message&label=Downloads&color=pink"></a></td>
-                    <td><a href="https://arxiv.org/pdf/2503.20332" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-                <tr>
-                    <td><strong><div class="paper-tag">ACL '25 Main</div> <span class="paper-title">From Informal to Formal--Incorporating and Evaluating LLMs on Natural Language Requirements to Verifiable Formal Proofs</span></strong> Jialun Cao, Yaojie Lu, Meiziniu Li, <u>Haoyang Ma</u>, Haokun Li, Mengda He, Cheng Wen, Le Sun, Hongyu Zhang, Shengchao Qin, Shing-Chi Cheung, Cong Tian <a href="https://huggingface.co/fm-universe"><img src="https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=fm-universe&logoColor=000)"></a> <img alt="Dynamic JSON Badge" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhaoyang9804%2Fhaoyang9804.github.io%2Fmaster%2Fdownloads_fm_badge.json&query=%24.message&label=Downloads&color=pink"></td>
-                    <td><a href="https://arxiv.org/pdf/2501.16207" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-                <tr>
-                    <td><strong><div class="paper-tag">FSE '25</div> <span class="paper-title">An Empirical Study of Bugs in Data Visualization Libraries</span></strong> Weiqi Lu, Yongqiang Tian, Xiaohan Zhong, <u>Haoyang Ma</u>, Zhenyang Xu, Chengnian Sun</td>
-                    <td><a href="https://arxiv.org/pdf/2506.15084" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-                <tr>
-                    <td><strong><div class="paper-tag">ICSE '25</div> <span class="paper-title">A Tale of Two DL Cities: When Library Tests Meet Compiler</span></strong> Qingchao Shen, Yongqiang Tian, <u>Haoyang Ma</u>, Junjie Chen, Lili Huang, Ruifeng Fu, Shing-Chi Cheung, Zan Wang</td>
-                    <td><a href="https://arxiv.org/pdf/2407.16626" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-                <tr>
-                    <td><strong><div class="paper-tag">ISSTA '24</div> <span class="paper-title">Towards Understanding Solidity Compiler Bugs</span></strong> <u>Haoyang Ma</u>, Wuqi Zhang, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung</td>
-                    <td><a href="https://arxiv.org/pdf/2407.05981" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-                <tr>
-                    <td><strong><div class="paper-tag">ISSTA '23</div> <span class="paper-title">Fuzzing Deep Learning Compilers with HirGen</span></strong> <u>Haoyang Ma</u>, Qingchao Shen, Yongqiang Tian, Junjie Chen, Shing-Chi Cheung</td>
-                    <td><a href="https://arxiv.org/pdf/2208.02193" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-                <tr>
-                    <td><strong><div class="paper-tag">FSE '21</div> <span class="paper-title">A Comprehensive Study of Deep Learning Compiler Bugs</span></strong> Qingchao Shen, <u>Haoyang Ma</u>, Junjie Chen, Yongqiang Tian, Shing-Chi Cheung, Xiang Chen</td>
-                    <td><a href="papers/fse21.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-                <tr>
-                    <td><strong><div class="paper-tag">ASE '20</div> <span class="paper-title">Enhanced Compiler Bug Isolation via Memoized Search</span></strong> Junjie Chen, <u>Haoyang Ma*</u>, Lingming Zhang</td>
-                    <td><a href="papers/ase20.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-                <tr>
-                    <td><strong><div class="preprint-tag">preprint</div> <span class="paper-title">A Survey of Modern Compiler Fuzzing</span></strong> <u>Haoyang Ma</u></td>
-                    <td><a href="https://arxiv.org/pdf/2306.06884" target="_blank" onclick="trackOutboundLink('https:'); return false;"><i class="fa-solid fa-file-pdf"></i></a></td>
-                </tr>
-            </tbody>
-                    </table>
-                    <p style="font-size: smaller; margin-top: 15px; color: #8a95a5;"><sup>*</sup> indicates co-first authorship.</p>
+        <!-- Experience Modal -->
+        <div id="experienceModal" class="modal-overlay" onclick="closeModal('experienceModal', event)">
+            <div class="sticky-note" onclick="event.stopPropagation()">
+                <button class="sticky-note-close" onclick="closeModal('experienceModal')">&times;</button>
+                <div class="sticky-note-title">Experience</div>
+                <div class="sticky-note-content">
+                    <strong><a href="https://www.spirit-ai.com/">Spirit AI</a>: AI Infrastructure Engineer Intern, Dec 2025 ~ <br>
+                    <strong>Ant Group</strong>: Research Intern at Skyward Lab, August 2025 ~ November 2025<br>
+                    <strong>Huawei HK</strong>: Research Intern at Compiler Technologies Lab, June 2025 ~ August 2025<br>
+                    <strong>Imperial College London</strong>: Visiting Researcher at <a href="https://fastpl.doc.ic.ac.uk/">fastPL group</a>, Sep 2024 ~ Feb 2025<br>
+                    <strong>Intel</strong>: Compiler Engineer Intern, Feb 2024 ~ Jul 2024<br>
+                    <strong>SiliconFlow</strong>: AI Framework Development Intern, Dec 2023 ~ Feb 2024<br>
+                    <strong>HKUST</strong>: PhD Student at <a href="http://castle.cse.ust.hk/">Castle group</a>, Sep 2021 ~ Dec 2025<br>
+                    <strong>Tianjin University</strong>: Undergraduate, Aug 2016 ~ Aug 2020
                 </div>
-
-                <div id="experience" class="tab-panel">
-                    <div class="section-content">
-                        <!-- <strong>Ant Group</strong>: Research Intern at Skyward Lab, working on web3 security, August 2025 ~ <i class="fa-solid fa-infinity"></i><br> -->
-                        <strong>Ant Group</strong>: Research Intern at Skyward Lab, working on web3 security, August 2025 ~ November 2025<br>
-                        <strong>Huawei HK</strong>: Research Intern at Compiler Technologies Lab, June 2025 ~ August 2025<br>
-                        <strong>Imperial College London</strong>: Visiting Researcher, Sep 2024 ~ Feb 2025<br>
-                        <strong>Intel</strong>: Compiler Engineer Intern, Feb 2024 ~ Jul 2024<br>
-                        <strong>SiliconFlow</strong>: AI Framework Development Intern, Dec 2023 ~ Feb 2024<br>
-                        <strong>HKUST</strong>: PhD Candidate, Sep 2021 ~ Dec 2025 (expected)<br>
-                        <strong>Tianjin University</strong>: Undergraduate, Aug 2016 ~ Aug 2020
                     </div>
                 </div>
 
-                <div id="services" class="tab-panel">
-                    <div class="section-content">
-                        Conference Paper (Co-) Reviewer: ISSTA '21 '23, AIWare '24, ISSRE' 24, ICSE' 25, FSE '25, ISSTA '25.<br>
-                        Journal Paper Reviewer: TSE
-                    </div>
-                </div>
-
-                <div id="teaching" class="tab-panel">
-                    <div class="section-content">
-                        I was the TA of the following courses.<br>
-                        COMP 3111 Software Engineering (Spring 2021-22)<br>
-                        COMP 2011 Programming With C++ (Fall 2022-23)<br>
-                        COMP 1021 Introduction to Computer Science (Fall 2023-24)<br>
-                        COMP 2011 Programming With C++ (Spring 2024-25)
-                    </div>
-                </div>
-
-                <div id="award" class="tab-panel">
-                    <div class="section-content">
+        <!-- Award Modal -->
+        <div id="awardModal" class="modal-overlay" onclick="closeModal('awardModal', event)">
+            <div class="sticky-note" onclick="event.stopPropagation()">
+                <button class="sticky-note-close" onclick="closeModal('awardModal')">&times;</button>
+                <div class="sticky-note-title">Awards</div>
+                <div class="sticky-note-content">
                         Jindouyun (筋斗云) Talent Program from ByteDance (2025)<br>
                         Ant Star Plan A (蚂蚁集团蚂蚁星Plan-A) (2025)<br>
                         HKUST Postgraduate Studentship (2021-2025)<br>
@@ -838,72 +311,29 @@ table img:hover {
                     </div>
                 </div>
             </div>
-        </div>
-
-        <footer>
-            <p>Copyright © 2025 <u>Haoyang Ma</u></p>
-        </footer>
     </div>
 
     <script>
-        function toggleTab(tabId, buttonElement) {
-            const selectedPanel = document.getElementById(tabId);
-            const isActive = buttonElement.classList.contains('active');
-            
-            if (isActive) {
-                // If clicking the active tab, collapse it
-                buttonElement.classList.remove('active');
-                if (selectedPanel) {
-                    selectedPanel.classList.remove('active');
-                }
-                // Hide indicator when no tab is active
-                hideTabIndicator();
-            } else {
-                // Hide all other tab panels
-                const panels = document.querySelectorAll('.tab-panel');
-                panels.forEach(panel => {
-                    panel.classList.remove('active');
-                });
-                
-                // Remove active class from all buttons
-                const buttons = document.querySelectorAll('.tab-button');
-                buttons.forEach(button => {
-                    button.classList.remove('active');
-                });
-                
-                // Show selected tab panel
-                if (selectedPanel) {
-                    selectedPanel.classList.add('active');
-                }
-                
-                // Add active class to clicked button
-                buttonElement.classList.add('active');
-                
-                // Update indicator position
-                updateTabIndicator(buttonElement);
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId, event) {
+            if (!event || event.target === document.getElementById(modalId)) {
+                document.getElementById(modalId).classList.remove('active');
+                document.body.style.overflow = '';
             }
         }
-        
-        function updateTabIndicator(activeButton) {
-            const nav = document.getElementById('tabsNav');
-            if (!nav || !activeButton) return;
-            
-            const buttonRect = activeButton.getBoundingClientRect();
-            const navRect = nav.getBoundingClientRect();
-            const left = buttonRect.left - navRect.left;
-            const width = buttonRect.width;
-            
-            nav.style.setProperty('--indicator-left', left + 'px');
-            nav.style.setProperty('--indicator-width', width + 'px');
-            nav.style.setProperty('--indicator-opacity', '1');
-        }
-        
-        function hideTabIndicator() {
-            const nav = document.getElementById('tabsNav');
-            if (!nav) return;
-            nav.style.setProperty('--indicator-opacity', '0');
-            nav.style.setProperty('--indicator-width', '0');
-        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+                document.body.style.overflow = '';
+            }
+        });
     </script>
 </body>
 </html>
