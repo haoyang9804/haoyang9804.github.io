@@ -4,10 +4,11 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>马昊阳</title>
+    <title>Haoyang Ma - Research Engineer</title>
 
     <meta name="google-site-verification" content="q8DtGMRIbR6QaJVsuBq_ia7dVYog6Z1o9Lwm4-AZP-w" />
-    <meta name="description" content="The personal website of <u>Haoyang Ma</u>.">
+    <meta name="description"
+        content="Personal website of Haoyang Ma, a Research Engineer at ByteDance specializing in AI systems, agents, and software engineering.">
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <!--
@@ -27,6 +28,21 @@
         rel="stylesheet" />
 
     <style type="text/css">
+        :root {
+            --bg-color: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --accent-color: #2563eb;
+            --container-max-width: 850px;
+            --font-serif: 'Source Serif 4', Georgia, serif;
+            --font-sans: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -34,70 +50,49 @@
         }
 
         body {
-            background: #ffffff;
-            text-align: left;
-            font-size: 11pt;
-            font-family: 'Source Sans 3', Georgia, 'Times New Roman', serif;
-            color: #333333;
-            margin: 0;
-            padding: 40px 20px;
-            line-height: 1.6;
-            max-width: 850px;
-            margin-left: auto;
-            margin-right: auto;
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 11.5pt;
+            line-height: 1.7;
+            padding: 60px 20px;
+            -webkit-font-smoothing: antialiased;
         }
 
         .main-container {
-            padding: 20px 0;
+            max-width: var(--container-max-width);
+            margin: 0 auto;
         }
 
         h1 {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 28pt;
+            font-family: var(--font-serif);
+            font-size: 32pt;
             font-weight: 700;
-            margin: 0 0 8px 0;
-            color: #1a1a1a;
+            margin-bottom: 0.2em;
+            letter-spacing: -0.02em;
         }
 
-        h2 {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 14pt;
-            font-weight: 600;
-            margin-top: 2em;
-            margin-bottom: 0.8em;
-            color: #1a1a1a;
-            border-bottom: 1px solid #cccccc;
-            padding-bottom: 0.3em;
-        }
-
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        /* Header links styling */
         .headerlinks {
-            margin: 15px 0 25px 0;
+            margin: 20px 0 40px 0;
+            display: flex;
+            gap: 24px;
         }
 
         .headerlinks a {
-            color: #555555;
-            font-size: 18px;
-            margin-right: 20px;
+            color: var(--text-muted);
+            font-size: 1.4rem;
+            transition: all 0.2s ease;
         }
 
         .headerlinks a:hover {
-            color: #0066cc;
+            color: var(--accent-color);
+            transform: translateY(-2px);
         }
 
         .bio-container {
             display: flex;
-            gap: 40px;
-            margin-bottom: 30px;
+            gap: 60px;
+            margin-bottom: 50px;
             align-items: flex-start;
         }
 
@@ -109,56 +104,55 @@
             flex-shrink: 0;
         }
 
+        .profile-pic-container {
+            position: relative;
+            padding: 10px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .profile-pic-container:hover {
+            transform: scale(1.02) rotate(2deg);
+        }
+
         .profile-pic {
-            width: 180px;
-            height: 180px;
+            width: 200px;
+            height: 200px;
             object-fit: cover;
             object-position: top;
-            border-radius: 14px;
+            border-radius: 16px;
             display: block;
         }
 
         .bio-container p {
-            margin-bottom: 12px;
-            line-height: 1.7;
-            color: #333333;
-            text-align: justify;
+            margin-bottom: 1.2em;
+            color: var(--text-main);
+            font-size: 1.15rem;
         }
 
         .bio-container strong {
             font-weight: 600;
+            color: #0f172a;
         }
 
-        .bio-container u {
-            text-decoration: none;
-            border-bottom: 1px dashed #666666;
-        }
-
-        /* Section content styling */
-        .section-content {
-            margin-top: 12px;
-            line-height: 1.8;
-            color: #333333;
-        }
-
-        .section-content strong {
-            font-weight: 600;
-            margin-right: 3px;
-        }
-
-        /* Clickable link style */
         .clickable-link {
-            color: #0066cc;
+            color: var(--accent-color);
+            font-weight: 600;
             cursor: pointer;
-            border-bottom: 1px dashed #0066cc;
+            text-decoration: underline decoration-thickness 2px;
+            text-underline-offset: 4px;
+            transition: opacity 0.2s;
         }
 
         .clickable-link:hover {
-            color: #004499;
-            border-bottom-style: solid;
+            opacity: 0.7;
         }
 
-        /* Modal/Sticky Note styling */
+        /* Modal styling */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -166,91 +160,103 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
             z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .modal-overlay.active {
             display: flex;
             justify-content: center;
             align-items: center;
+            opacity: 1;
         }
 
-        .sticky-note {
-            background: #fffef0;
-            border: 1px solid #e0dcc8;
-            box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.15);
-            padding: 25px 30px;
-            max-width: 700px;
-            width: 90%;
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            max-width: 800px;
+            width: 100%;
             position: relative;
-            font-size: 10.5pt;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-family: var(--font-serif);
+            font-size: 20pt;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--text-main);
+        }
+
+        .modal-body {
+            font-size: 1.05rem;
+            color: var(--text-muted);
             line-height: 1.8;
         }
 
-        .sticky-note::before {
-            content: '';
+        .modal-body strong {
+            color: var(--text-main);
+        }
+
+        .modal-close {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: #c9a227;
-        }
-
-        .sticky-note-title {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 13pt;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #1a1a1a;
-            border-bottom: 1px dashed #d0cbb8;
-            padding-bottom: 10px;
-        }
-
-        .sticky-note-content {
-            color: #444444;
-        }
-
-        .sticky-note-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
+            top: 24px;
+            right: 24px;
+            background: #f1f5f9;
             border: none;
-            font-size: 18px;
-            color: #888888;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
         }
 
-        .sticky-note-close:hover {
-            color: #333333;
+        .modal-close:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
         }
 
-        /* Responsive design */
         @media (max-width: 768px) {
             body {
-                padding: 20px 15px;
+                padding: 40px 20px;
             }
 
             h1 {
-                font-size: 22pt;
+                font-size: 26pt;
             }
 
             .bio-container {
-                flex-direction: column;
-                gap: 20px;
+                flex-direction: column-reverse;
+                gap: 30px;
+                text-align: center;
             }
 
-            .profile-pic {
-                width: 140px;
-                height: 140px;
+            .profile-pic-container {
                 margin: 0 auto;
             }
 
-            .headerlinks a {
-                margin-right: 15px;
-                font-size: 16px;
+            .headerlinks {
+                justify-content: center;
+            }
+
+            .profile-pic {
+                width: 160px;
+                height: 160px;
             }
         }
     </style>
@@ -272,8 +278,7 @@
         <div class="bio-container">
             <div class="left-column">
                 <p>
-                    I am going to join ByteDance as a research engineer, working on <strong>AI systems and
-                        agents</strong>.
+                    I am a research engineer at ByteDance, working on <strong>AI systems and agents</strong>.
                     During my PhD, I worked in the areas of software engineering, programming languages, and their
                     intersection with AI, including
                     <strong>bug detection</strong>, <strong>bug localization</strong>, and <strong>LLM-empowered
@@ -281,25 +286,26 @@
                     I also have hands-on experience in <strong>compiler development</strong> and <strong>AI
                         infrastructure</strong>.
                 </p>
-                <!-- <p>
-                        Until now, my <a href="https://sites.google.com/view/qingchaoshen">collaborator</a> and I have studied over 1000 compiler bugs (including 603 deep learning compiler bugs and 533 Solidity compiler bugs) and detected more than 300 compiler bugs (For instance, Solidity compiler bugs: <a href="https://github.com/ethereum/solidity/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bug"></i></a>, <a href="https://github.com/hyperledger-solang/solang/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-bugs"></i></a>; deep learning compiler bugs: <a href="https://github.com/apache/tvm/issues?q=author%3Ajikechao"><i class="fa-solid fa-virus"></i></a>, <a href="https://github.com/apache/tvm/issues?q=author%3Ahaoyang9804"><i class="fa-solid fa-viruses"></i></a>).
-                </p> -->
                 <p>
                     See my <span class="clickable-link" onclick="openModal('experienceModal')">experience</span> and
                     <span class="clickable-link" onclick="openModal('awardModal')">awards</span>.
                 </p>
             </div>
             <div class="right-column">
-                <img src="./haoyang.jpg" alt="Haoyang Ma" class="profile-pic">
+                <div class="profile-pic-container">
+                    <img src="./haoyang.jpg" alt="Haoyang Ma" class="profile-pic">
+                </div>
             </div>
         </div>
 
+
+
         <!-- Experience Modal -->
         <div id="experienceModal" class="modal-overlay" onclick="closeModal('experienceModal', event)">
-            <div class="sticky-note" onclick="event.stopPropagation()">
-                <button class="sticky-note-close" onclick="closeModal('experienceModal')">&times;</button>
-                <div class="sticky-note-title">Experience</div>
-                <div class="sticky-note-content">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <button class="modal-close" onclick="closeModal('experienceModal')">&times;</button>
+                <div class="modal-title">Experience</div>
+                <div class="modal-body">
                     <strong>Spirit AI</strong>: AI Infra Engineer Intern for Embodied AI, Dec 2025 ~ Jan 2026<br>
                     <strong>Ant Group</strong>: Research Intern at Skyward Lab, August 2025 ~ November 2025<br>
                     <strong>Huawei HK</strong>: Research Intern at Compiler Technologies Lab, June 2025 ~ August
@@ -317,10 +323,10 @@
 
         <!-- Award Modal -->
         <div id="awardModal" class="modal-overlay" onclick="closeModal('awardModal', event)">
-            <div class="sticky-note" onclick="event.stopPropagation()">
-                <button class="sticky-note-close" onclick="closeModal('awardModal')">&times;</button>
-                <div class="sticky-note-title">Awards</div>
-                <div class="sticky-note-content">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <button class="modal-close" onclick="closeModal('awardModal')">&times;</button>
+                <div class="modal-title">Awards</div>
+                <div class="modal-body">
                     Jindouyun (筋斗云) Talent Program from ByteDance (2025)<br>
                     Ant Star Plan A (蚂蚁集团蚂蚁星Plan-A) (2025)<br>
                     HKUST Postgraduate Studentship (2021-2025)<br>
@@ -329,6 +335,8 @@
                 </div>
             </div>
         </div>
+
+
     </div>
 
     <script>
