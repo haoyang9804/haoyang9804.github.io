@@ -153,54 +153,22 @@
             opacity: 0.7;
         }
 
-        .learning-note {
-            margin-top: 22px;
-            padding: 18px 20px;
-            border: 1px solid rgba(37, 99, 235, 0.16);
-            border-left: 4px solid #14b8a6;
-            border-radius: 8px;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(20, 184, 166, 0.08), rgba(249, 115, 22, 0.07));
-            box-shadow: var(--shadow-sm);
-            text-align: left;
+        .document-list {
+            margin: -0.4em 0 0 1.1em;
+            padding-left: 1.1em;
+            color: var(--text-main);
+            font-size: 1.05rem;
         }
 
-        .learning-note-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            color: #0f766e;
-            font-size: 0.82rem;
-            font-weight: 600;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .learning-note-title {
-            margin-bottom: 6px;
-            color: #0f172a;
-            font-size: 1.08rem;
-            font-weight: 600;
-        }
-
-        .bio-container .learning-note-description {
-            margin-bottom: 14px;
-            color: #334155;
-            font-size: 1rem;
-            line-height: 1.65;
-        }
-
-        .learning-note-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .document-list a {
             color: var(--accent-color);
-            font-weight: 600;
+            font-weight: 500;
             text-decoration: none;
         }
 
-        .learning-note-link:hover {
-            color: #0f766e;
+        .document-list a:hover {
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
         /* Modal styling */
@@ -335,24 +303,15 @@
                     <strong>bug detection</strong>, <strong>bug localization</strong>, and <strong>LLM-empowered
                         programming</strong>.
                 </p>
-                <div class="learning-note">
-                    <div class="learning-note-meta">
-                        <i class="fa-solid fa-book-open"></i>
-                        Working Notes
-                    </div>
-                    <div class="learning-note-title">Stepping into LLM Infra</div>
-                    <p class="learning-note-description">
-                        Since beginning my professional work, I have been deliberately working my way into
-                        <strong>LLM Infra</strong>. Writing structured notes along the way has helped me learn deeply
-                        and made the journey especially rewarding.
-                    </p>
-                    <a class="learning-note-link"
-                        href="https://my.feishu.cn/wiki/MPrcwPHqNi3B0ukGGYUcqIPXnWg?from=from_copylink"
-                        target="_blank" rel="noopener noreferrer">
-                        Read my notes
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </a>
-                </div>
+                <p>
+                    I enjoy learning <strong>LLM Infra</strong> by writing documents.
+                </p>
+                <ul class="document-list">
+                    <li>
+                        <a href="https://my.feishu.cn/wiki/MPrcwPHqNi3B0ukGGYUcqIPXnWg?from=from_copylink"
+                            target="_blank" rel="noopener noreferrer">现代孔乙己 - softmax的N种Cuda写法</a>
+                    </li>
+                </ul>
                 <!--
                 <p>
                     See my <span class="clickable-link" onclick="openModal('experienceModal')">experience</span> and
