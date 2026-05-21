@@ -1,123 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Haoyang Ma (马昊阳)</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Notes - Haoyang Ma</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --paper: #f3e5be;
+            --paper-light: #fff7df;
+            --ink: #2f281f;
+            --muted: #705f49;
+            --line: rgba(88, 63, 34, 0.18);
+            --accent: #6d4418;
+            --serif: "Fraunces", Georgia, serif;
+            --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
 
-<meta name="google-site-verification" content="q8DtGMRIbR6QaJVsuBq_ia7dVYog6Z1o9Lwm4-AZP-w" />
-<meta name="description" content="The personal website of Haoyang Ma.">
+        * {
+            box-sizing: border-box;
+        }
 
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<!--
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-132846739-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--ink);
+            font-family: var(--sans);
+            line-height: 1.72;
+            background:
+                radial-gradient(circle at 10% 0%, rgba(255, 250, 229, 0.78), transparent 30rem),
+                var(--paper);
+        }
 
-  gtag('config', 'UA-132846739-1');
-</script>
--->
+        a {
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 0.18em;
+        }
 
+        .page {
+            width: min(820px, calc(100% - 36px));
+            margin: 0 auto;
+            padding: 42px 0 64px;
+        }
 
-<link href="https://fonts.googleapis.com/css?family=Noto Sans" rel="stylesheet" type="text/css" />
+        .back {
+            display: inline-flex;
+            margin-bottom: 46px;
+            color: var(--muted);
+            text-decoration: none;
+        }
 
-<style type="text/css">
+        h1 {
+            margin: 0 0 16px;
+            font-family: var(--serif);
+            font-size: clamp(3rem, 8vw, 5.4rem);
+            line-height: 0.98;
+        }
 
-body {
-	background-color: #FFF;
-	text-align: left;
-	font-size: 11pt;
+        .lead {
+            max-width: 660px;
+            margin: 0 0 42px;
+            color: var(--muted);
+            font-size: 1.12rem;
+        }
 
-	font-family: 'Noto Sans', 'Open Sans', sans-serif;
+        .note-list {
+            display: grid;
+            gap: 14px;
+        }
 
-	color: rgb(42,50,65); 
-	margin: auto;
-    width: 900px;
-}
-ol.pubs {
-    font-size: 10.5pt;
-}
-h1, h2, h3 {
-	font-weight: normal;
-}
-h2, h3 {
-	border-bottom-style: solid;
-	font-size: 20pt;
-	border-color: #EEE;
-	margin-top: 1.5em;
-	margin-bottom: 1em;
-}
-h1 { font-size: 26pt; }
+        .note {
+            display: grid;
+            gap: 6px;
+            padding: 22px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255, 248, 224, 0.72);
+        }
 
-a {
-    color: #0870a9;
-    text-decoration: none;
-    background-image: linear-gradient(to right, #0870a9 25%, rgba(255,255,255,0) 0%);
-    background-position: bottom;
-    background-size: 3px 1px;
-    background-repeat: repeat-x;
-}
-a:hover {
-    color: #71CAFF
-}
-a.papertitle {
-    color: #70a808;
-    background-image: none;
-}
-a.papertitle:hover {
-    color: #95cb0b;
-}
+        .note-title {
+            font-family: var(--serif);
+            font-size: 1.35rem;
+            font-weight: 650;
+        }
 
-.newpadding {
-  padding-left: 2px;
-  padding-top: 3px;
-  padding-bottom: 2px;
-}
-
-.bpa {
-    color: #a80b08;
-    font-weight: bold;
-    font-size: 1.09em;
-}
-
-em {
-	font-size: 12pt;
-	font-style: normal;
-	color: #000;
-}
-li a.papertitle {
-	font-size: 13.5pt;
-	font-weight: normal;
-}
-ol.pubs li ul {
-	padding: 0;
-}
-
-ol.pubs li {
-	adadasdadasdasd-list-style-type: decimal-leading-zero;
-	margin-bottom: 1em;
-	padding-left: 0.5em;
-}
-ol.pubs li li {
-	padding-left: 0;
-}
-
-td.firstCol {
-    padding-right:5px;
-    font-weight: 700;
-    text-align: right;
-    vertical-align: top;
-}
-</style>
+        .note p {
+            margin: 0;
+            color: var(--muted);
+        }
+    </style>
 </head>
 
 <body>
-I enjoy taking notes on various topics from open-source courses.
-<br>
-<a href="notes/logic4cs.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;">Logic for CS</a>
-<br>
-<!-- <a href="notes/codeforces.pdf" target="_blank" onclick="trackOutboundLink('https:'); return false;">An ongoing review of my codeforces journey</a> -->
+    <main class="page">
+        <a class="back" href="./index.html">Back home</a>
+        <h1>Notes</h1>
+        <p class="lead">Longer notes, course writeups, and the new blog workspace live here.</p>
 
+        <section class="note-list" aria-label="Notes list">
+            <article class="note">
+                <a class="note-title" href="./blog.html">Blog workspace</a>
+                <p>A local Markdown writing surface with preview, code highlighting, and math rendering.</p>
+            </article>
+            <article class="note">
+                <a class="note-title" href="notes/logic4cs.pdf" target="_blank" rel="noopener">Logic for CS</a>
+                <p>Course notes on logic for computer science.</p>
+            </article>
+        </section>
+    </main>
 </body>
+
+</html>
