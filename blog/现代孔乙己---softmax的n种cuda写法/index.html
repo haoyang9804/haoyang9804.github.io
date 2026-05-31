@@ -1,0 +1,1207 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>现代孔乙己 - softmax 的 N 种 CUDA 写法 - Haoyang Ma</title><meta name="description" content="一次从 naive softmax 到多 kernel reduce 的 CUDA kernel 性能实验笔记。"><meta name="google-site-verification" content="q8DtGMRIbR6QaJVsuBq_ia7dVYog6Z1o9Lwm4-AZP-w"><link rel="icon" href="/Erwin_icon.png"><link rel="alternate" type="application/rss+xml" title="Haoyang Ma Blog" href="/rss.xml"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="/_astro/BaseLayout.B_PtB__m.css"></head> <body> <main class="main-container">  <article class="post"> <a class="back-link" href="/blog/">Back to blog</a> <header class="post-header"> <h1>现代孔乙己 - softmax 的 N 种 CUDA 写法</h1> <div class="post-meta"> <time datetime="2026-05-22T00:00:00.000Z">May 22, 2026</time>  </div> <div class="tag-row"> <span>cuda</span><span>llm-infra</span><span>kernel</span> </div> <p class="post-description">一次从 naive softmax 到多 kernel reduce 的 CUDA kernel 性能实验笔记。</p> </header> <div class="prose"> <p>本次实验旨在对kernel性能有一个初步的了解，锻炼看到性能大概猜到瓶颈在哪里的能力。</p>
+<p>实验都在单卡H20上完成。H20有78个SM，max_warps_per_sm = 64，max_blocks_per_sm = 32，registers_per_sm = 65536, 这些数据与下述粗粒度的简单实验高度相关。</p>
+<h1 id="背景">背景</h1>
+<p>初始的softmax<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><msup><mi>e</mi><mrow><msub><mi>s</mi><mi>i</mi></msub><mo>−</mo><mi>m</mi><mi>a</mi><msubsup><mi>x</mi><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>N</mi></msubsup><msub><mi>s</mi><mi>k</mi></msub></mrow></msup><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mi>N</mi></msubsup><msup><mi>e</mi><mrow><msub><mi>s</mi><mi>j</mi></msub><mo>−</mo><mi>m</mi><mi>a</mi><msubsup><mi>x</mi><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>N</mi></msubsup><msub><mi>s</mi><mi>k</mi></msub></mrow></msup></mrow></mfrac></mrow><annotation encoding="application/x-tex">\frac{e^{s_i-max_{k=0}^N{s_k}}}{\sum_{j=0}^Ne^{s_j-max_{k=0}^N{s_k}}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.2508em;vertical-align:-0.9945em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.2563em;"><span style="top:-2.3277em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mop op-symbol small-op mtight" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8852em;"><span style="top:-2.1786em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-2.8971em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4603em;"><span></span></span></span></span></span></span><span class="mspace mtight" style="margin-right:0.1952em;"></span><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.2319em;"><span style="top:-3.2319em;margin-right:0.0714em;"><span class="pstrut" style="height:2.7344em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3448em;margin-left:0em;margin-right:0.1em;"><span class="pstrut" style="height:2.6595em;"></span><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5092em;"><span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">ma</span><span class="mord mtight"><span class="mord mathnormal mtight">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0281em;"><span style="top:-2.1488em;margin-left:0em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span><span style="top:-3.0392em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.5456em;"><span></span></span></span></span></span></span><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3448em;margin-left:0em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3496em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.2319em;"><span style="top:-3.2319em;margin-right:0.0714em;"><span class="pstrut" style="height:2.7767em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3448em;margin-left:0em;margin-right:0.1em;"><span class="pstrut" style="height:2.6595em;"></span><span class="mord mathnormal mtight">i</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3147em;"><span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">ma</span><span class="mord mtight"><span class="mord mathnormal mtight">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.0873em;"><span style="top:-2.208em;margin-left:0em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span><span style="top:-3.0984em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4864em;"><span></span></span></span></span></span></span><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3448em;margin-left:0em;margin-right:0.1em;"><span class="pstrut" style="height:2.6944em;"></span><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3496em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9945em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>无法通过kernel高效解决，这是因为单次 online softmax kernel 内，reduce 的协作范围通常最多到 block 级别。因此首先想到的就是分三个kernel，第一个kernel（称之为pass1）计算每个block的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>a</mi><msubsup><mi>x</mi><mrow><mi>k</mi><mo>=</mo><msub><mi>B</mi><mi>i</mi></msub></mrow><mrow><msub><mi>B</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>−</mo><mn>1</mn></mrow></msubsup><msub><mi>s</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">max_{k=B_i}^{B_{i+1}-1}{s_k}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.3663em;vertical-align:-0.4014em;"></span><span class="mord mathnormal">ma</span><span class="mord"><span class="mord mathnormal">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9649em;"><span style="top:-2.3987em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mrel mtight">=</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:-0.0502em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span><span style="top:-3.1866em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:-0.0502em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2025em;"><span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4014em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><msub><mi>B</mi><mi>i</mi></msub></mrow><mrow><msub><mi>B</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>−</mo><mn>1</mn></mrow></msubsup><msup><mi>e</mi><mrow><msub><mi>s</mi><mi>j</mi></msub><mo>−</mo><mi>m</mi><mi>a</mi><msubsup><mi>x</mi><mrow><mi>k</mi><mo>=</mo><msub><mi>B</mi><mi>i</mi></msub></mrow><mrow><msub><mi>B</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>−</mo><mn>1</mn></mrow></msubsup><msub><mi>s</mi><mi>k</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">\sum_{j=B_i}^{B_{i+1}-1}e^{s_j-max_{k=B_i}^{B_{i+1}-1}{s_k}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.726em;vertical-align:-0.4358em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9812em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mrel mtight">=</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:-0.0502em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:-0.0502em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2025em;"><span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.2902em;"><span style="top:-3.2902em;margin-right:0.05em;"><span class="pstrut" style="height:2.782em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2819em;"><span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">ma</span><span class="mord mtight"><span class="mord mathnormal mtight">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1172em;"><span style="top:-2.1528em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mrel mtight">=</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3448em;margin-left:-0.0502em;margin-right:0.1em;"><span class="pstrut" style="height:2.6595em;"></span><span class="mord mathnormal mtight">i</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3147em;"><span></span></span></span></span></span></span></span></span></span><span style="top:-3.1291em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3448em;margin-left:-0.0502em;margin-right:0.1em;"><span class="pstrut" style="height:2.6595em;"></span><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3981em;"><span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.572em;"><span></span></span></span></span></span></span><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3488em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1512em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>，第二个kernel（称之为pass2）把block-level summary整合成global summary <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>e</mi><mrow><msub><mi>s</mi><mi>i</mi></msub><mo>−</mo><mi>m</mi><mi>a</mi><msubsup><mi>x</mi><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>N</mi></msubsup><msub><mi>s</mi><mi>k</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">e^{s_i-max_{k=0}^N{s_k}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0064em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.0064em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">ma</span><span class="mord mtight"><span class="mord mathnormal mtight">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9191em;"><span style="top:-2.214em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286em;"><span></span></span></span></span></span></span><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3488em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1512em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>和 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mi>N</mi></msubsup><msup><mi>e</mi><mrow><msub><mi>s</mi><mi>j</mi></msub><mo>−</mo><mi>m</mi><mi>a</mi><msubsup><mi>x</mi><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>N</mi></msubsup><msub><mi>s</mi><mi>k</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">\sum_{j=0}^Ne^{s_j-max_{k=0}^N{s_k}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.4422em;vertical-align:-0.4358em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9812em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.0064em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3281em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2819em;"><span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mathnormal mtight">ma</span><span class="mord mtight"><span class="mord mathnormal mtight">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9191em;"><span style="top:-2.214em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span><span class="mrel mtight">=</span><span class="mord mtight">0</span></span></span></span><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.109em;">N</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286em;"><span></span></span></span></span></span></span><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight">s</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3488em;margin-left:0em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0315em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1512em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>，然后第三个kernel （pass3）做最简单的事：把input[i] 通过计算映射到output[i]。</p>
+<h1 id="代码">代码</h1>
+<p>cuda代码</p>
+<details class="code-details" open><summary class="code-summary"><span class="code-summary-label">Code</span></summary><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="cpp"><code><span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;cuda_profiler_api.h></span></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;cuda_runtime.h></span></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;float.h></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;algorithm></span></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;cerrno></span></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;climits></span></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;cmath></span></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;cstdio></span></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;cstdlib></span></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;cstring></span></span>
+<span class="line"><span style="color:#F97583">#include</span><span style="color:#9ECBFF"> &#x3C;vector></span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kWarpSize </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 32</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kThreadsPerBlock </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 256</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">#define</span><span style="color:#B392F0"> CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">call</span><span style="color:#E1E4E8">)                                                       </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">    do</span><span style="color:#E1E4E8"> {                                                                       </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#79B8FF">        cudaError_t</span><span style="color:#E1E4E8"> err__ </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> (call);                                            </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (err__ </span><span style="color:#F97583">!=</span><span style="color:#E1E4E8"> cudaSuccess) {                                            </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"CUDA error </span><span style="color:#79B8FF">%s</span><span style="color:#9ECBFF">:</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, </span><span style="color:#B392F0">__FILE__</span><span style="color:#E1E4E8">, </span><span style="color:#B392F0">__LINE__</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#B392F0">                         cudaGetErrorString</span><span style="color:#E1E4E8">(err__));                           </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">exit</span><span style="color:#E1E4E8">(EXIT_FAILURE);                                           </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#E1E4E8">        }                                                                      </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">while</span><span style="color:#E1E4E8"> (</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">enum</span><span style="color:#B392F0"> TestCaseId</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#79B8FF">    kCaseSine</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    kCaseZeros</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    kCaseRamp</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    kCaseReverse</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> 3</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    kCaseAlternating</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> 4</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    kCaseSpike</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> 5</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    kCaseRandom</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> 6</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">struct</span><span style="color:#B392F0"> SolveConfig</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass1_stride;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass2_stride;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass3_stride;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass1_tile_cap;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass2_tile_cap;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass3_tile_cap;</span></span>
+<span class="line"><span style="color:#E1E4E8">};</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">__host__ __device__ __forceinline__ </span><span style="color:#F97583">float</span><span style="color:#B392F0"> input_value_at</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> i, </span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> N, </span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> test_case) {</span></span>
+<span class="line"><span style="color:#F97583">    switch</span><span style="color:#E1E4E8"> (test_case) {</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#E1E4E8"> kCaseSine:</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#B392F0"> sinf</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 0.001</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 4.0</span><span style="color:#F97583">f</span><span style="color:#F97583"> +</span><span style="color:#B392F0"> cosf</span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 0.0001</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#E1E4E8"> kCaseZeros:</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#E1E4E8"> kCaseRamp: {</span></span>
+<span class="line"><span style="color:#F97583">            int</span><span style="color:#E1E4E8"> denom </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> N </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 1</span><span style="color:#F97583"> ?</span><span style="color:#E1E4E8"> N </span><span style="color:#F97583">-</span><span style="color:#79B8FF"> 1</span><span style="color:#F97583"> :</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#F97583"> -</span><span style="color:#79B8FF">8.0</span><span style="color:#F97583">f</span><span style="color:#F97583"> +</span><span style="color:#79B8FF"> 16.0</span><span style="color:#F97583">f</span><span style="color:#F97583"> *</span><span style="color:#F97583"> static_cast&#x3C;float></span><span style="color:#E1E4E8">(i) </span><span style="color:#F97583">/</span><span style="color:#F97583"> static_cast&#x3C;float></span><span style="color:#E1E4E8">(denom);</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#E1E4E8"> kCaseReverse: {</span></span>
+<span class="line"><span style="color:#F97583">            int</span><span style="color:#E1E4E8"> denom </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> N </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 1</span><span style="color:#F97583"> ?</span><span style="color:#E1E4E8"> N </span><span style="color:#F97583">-</span><span style="color:#79B8FF"> 1</span><span style="color:#F97583"> :</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#79B8FF"> 8.0</span><span style="color:#F97583">f</span><span style="color:#F97583"> -</span><span style="color:#79B8FF"> 16.0</span><span style="color:#F97583">f</span><span style="color:#F97583"> *</span><span style="color:#F97583"> static_cast&#x3C;float></span><span style="color:#E1E4E8">(i) </span><span style="color:#F97583">/</span><span style="color:#F97583"> static_cast&#x3C;float></span><span style="color:#E1E4E8">(denom);</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#E1E4E8"> kCaseAlternating:</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> (i </span><span style="color:#F97583">&#x26;</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">?</span><span style="color:#F97583"> -</span><span style="color:#79B8FF">8.0</span><span style="color:#F97583">f</span><span style="color:#F97583"> :</span><span style="color:#79B8FF"> 8.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#E1E4E8"> kCaseSpike:</span></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#E1E4E8"> (i </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> N </span><span style="color:#F97583">/</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">                return</span><span style="color:#79B8FF"> 12.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> (i </span><span style="color:#F97583">%</span><span style="color:#79B8FF"> 10007</span><span style="color:#F97583"> ==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">?</span><span style="color:#79B8FF"> 8.0</span><span style="color:#F97583">f</span><span style="color:#F97583"> :</span><span style="color:#F97583"> -</span><span style="color:#79B8FF">8.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#E1E4E8"> kCaseRandom: {</span></span>
+<span class="line"><span style="color:#F97583">            unsigned</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> state </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 123456789</span><span style="color:#F97583">u</span><span style="color:#F97583"> ^</span><span style="color:#F97583"> static_cast&#x3C;unsigned</span><span style="color:#F97583"> int></span><span style="color:#E1E4E8">(i </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 747796405</span><span style="color:#F97583">u</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">            state </span><span style="color:#F97583">^=</span><span style="color:#E1E4E8"> state </span><span style="color:#F97583">>></span><span style="color:#79B8FF"> 16</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">            state </span><span style="color:#F97583">*=</span><span style="color:#79B8FF"> 2246822519</span><span style="color:#F97583">u</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">            state </span><span style="color:#F97583">^=</span><span style="color:#E1E4E8"> state </span><span style="color:#F97583">>></span><span style="color:#79B8FF"> 13</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">            state </span><span style="color:#F97583">*=</span><span style="color:#79B8FF"> 3266489917</span><span style="color:#F97583">u</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">            state </span><span style="color:#F97583">^=</span><span style="color:#E1E4E8"> state </span><span style="color:#F97583">>></span><span style="color:#79B8FF"> 16</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">            float</span><span style="color:#E1E4E8"> unit </span><span style="color:#F97583">=</span><span style="color:#F97583"> static_cast&#x3C;float></span><span style="color:#E1E4E8">(state </span><span style="color:#F97583">&#x26;</span><span style="color:#F97583"> 0x</span><span style="color:#79B8FF">00ffffff</span><span style="color:#F97583">u</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">/</span><span style="color:#79B8FF"> 16777216.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#F97583"> -</span><span style="color:#79B8FF">8.0</span><span style="color:#F97583">f</span><span style="color:#F97583"> +</span><span style="color:#79B8FF"> 16.0</span><span style="color:#F97583">f</span><span style="color:#F97583"> *</span><span style="color:#E1E4E8"> unit;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        default</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">__device__ __forceinline__ </span><span style="color:#F97583">void</span><span style="color:#B392F0"> combine_softmax_pair</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#F97583">    float&#x26;</span><span style="color:#E1E4E8"> esum, </span><span style="color:#F97583">float&#x26;</span><span style="color:#E1E4E8"> mx, </span><span style="color:#F97583">float</span><span style="color:#E1E4E8"> other_esum, </span><span style="color:#F97583">float</span><span style="color:#E1E4E8"> other_mx) {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (other_esum </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (esum </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        esum </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> other_esum;</span></span>
+<span class="line"><span style="color:#E1E4E8">        mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> other_mx;</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> new_mx </span><span style="color:#F97583">=</span><span style="color:#B392F0"> fmaxf</span><span style="color:#E1E4E8">(mx, other_mx);</span></span>
+<span class="line"><span style="color:#E1E4E8">    esum </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> esum </span><span style="color:#F97583">*</span><span style="color:#B392F0"> __expf</span><span style="color:#E1E4E8">(mx </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> new_mx) </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> other_esum </span><span style="color:#F97583">*</span><span style="color:#B392F0"> __expf</span><span style="color:#E1E4E8">(other_mx </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> new_mx);</span></span>
+<span class="line"><span style="color:#E1E4E8">    mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> new_mx;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">__device__ __forceinline__ </span><span style="color:#F97583">void</span><span style="color:#B392F0"> add_softmax_value</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">float&#x26;</span><span style="color:#E1E4E8"> esum, </span><span style="color:#F97583">float&#x26;</span><span style="color:#E1E4E8"> mx, </span><span style="color:#F97583">float</span><span style="color:#E1E4E8"> val) {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (esum </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        esum </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 1.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">        mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> val;</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> new_mx </span><span style="color:#F97583">=</span><span style="color:#B392F0"> fmaxf</span><span style="color:#E1E4E8">(mx, val);</span></span>
+<span class="line"><span style="color:#E1E4E8">    esum </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> esum </span><span style="color:#F97583">*</span><span style="color:#B392F0"> __expf</span><span style="color:#E1E4E8">(mx </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> new_mx) </span><span style="color:#F97583">+</span><span style="color:#B392F0"> __expf</span><span style="color:#E1E4E8">(val </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> new_mx);</span></span>
+<span class="line"><span style="color:#E1E4E8">    mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> new_mx;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">__device__ __forceinline__ </span><span style="color:#F97583">void</span><span style="color:#B392F0"> warp_reduce</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">float&#x26;</span><span style="color:#E1E4E8"> esum, </span><span style="color:#F97583">float&#x26;</span><span style="color:#E1E4E8"> mx) {</span></span>
+<span class="line"><span style="color:#F97583">    unsigned</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> mask </span><span style="color:#F97583">=</span><span style="color:#B392F0"> __activemask</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#F97583">    #pragma</span><span style="color:#B392F0"> unroll</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> offset </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> kWarpSize </span><span style="color:#F97583">/</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; offset </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; offset </span><span style="color:#F97583">>>=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">        float</span><span style="color:#E1E4E8"> other_esum </span><span style="color:#F97583">=</span><span style="color:#B392F0"> __shfl_down_sync</span><span style="color:#E1E4E8">(mask, esum, offset);</span></span>
+<span class="line"><span style="color:#F97583">        float</span><span style="color:#E1E4E8"> other_mx </span><span style="color:#F97583">=</span><span style="color:#B392F0"> __shfl_down_sync</span><span style="color:#E1E4E8">(mask, mx, offset);</span></span>
+<span class="line"><span style="color:#B392F0">        combine_softmax_pair</span><span style="color:#E1E4E8">(esum, mx, other_esum, other_mx);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">template</span><span style="color:#E1E4E8"> &#x3C;</span><span style="color:#F97583">int</span><span style="color:#B392F0"> ThreadsPerBlock</span><span style="color:#E1E4E8">></span></span>
+<span class="line"><span style="color:#E1E4E8">__device__ __forceinline__ </span><span style="color:#F97583">void</span><span style="color:#B392F0"> block_reduce</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">float&#x26;</span><span style="color:#E1E4E8"> esum, </span><span style="color:#F97583">float&#x26;</span><span style="color:#E1E4E8"> mx) {</span></span>
+<span class="line"><span style="color:#F97583">    static_assert</span><span style="color:#E1E4E8">(ThreadsPerBlock </span><span style="color:#F97583">%</span><span style="color:#E1E4E8"> kWarpSize </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"ThreadsPerBlock must be a multiple of warp size"</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#F97583">    constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> warp_num </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ThreadsPerBlock </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> kWarpSize;</span></span>
+<span class="line"><span style="color:#E1E4E8">    __shared__ </span><span style="color:#F97583">float</span><span style="color:#E1E4E8"> sdata[warp_num </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    warp_reduce</span><span style="color:#E1E4E8">(esum, mx);</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> warp_id </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> threadIdx.x </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> kWarpSize;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> ((threadIdx.x </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8"> (kWarpSize </span><span style="color:#F97583">-</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">)) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        sdata[warp_id] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> esum;</span></span>
+<span class="line"><span style="color:#E1E4E8">        sdata[warp_id </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> warp_num] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> mx;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#B392F0">    __syncthreads</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (threadIdx.x </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> kWarpSize) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        esum </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> threadIdx.x </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> warp_num </span><span style="color:#F97583">?</span><span style="color:#E1E4E8"> sdata[threadIdx.x] </span><span style="color:#F97583">:</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">        mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> threadIdx.x </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> warp_num </span><span style="color:#F97583">?</span><span style="color:#E1E4E8"> sdata[threadIdx.x </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> warp_num] </span><span style="color:#F97583">:</span><span style="color:#F97583"> -</span><span style="color:#E1E4E8">FLT_MAX;</span></span>
+<span class="line"><span style="color:#B392F0">        warp_reduce</span><span style="color:#E1E4E8">(esum, mx);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">template</span><span style="color:#E1E4E8"> &#x3C;</span><span style="color:#F97583">int</span><span style="color:#B392F0"> ThreadsPerBlock</span><span style="color:#E1E4E8">></span></span>
+<span class="line"><span style="color:#E1E4E8">__global__ </span><span style="color:#F97583">void</span><span style="color:#B392F0"> init_input_kernel</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">float*</span><span style="color:#E1E4E8"> input, </span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> N, </span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> test_case) {</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> idx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> blockDim.x </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> blockIdx.x </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> threadIdx.x;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> grid_stride </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> gridDim.x </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> blockDim.x;</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> idx; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> N; i </span><span style="color:#F97583">+=</span><span style="color:#E1E4E8"> grid_stride) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        input[i] </span><span style="color:#F97583">=</span><span style="color:#B392F0"> input_value_at</span><span style="color:#E1E4E8">(i, N, test_case);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">template</span><span style="color:#E1E4E8"> &#x3C;</span><span style="color:#F97583">int</span><span style="color:#B392F0"> BlockStride</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#B392F0"> ThreadsPerBlock</span><span style="color:#E1E4E8">></span></span>
+<span class="line"><span style="color:#E1E4E8">__global__ </span><span style="color:#F97583">void</span><span style="color:#B392F0"> softmax_pass1</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> float*</span><span style="color:#E1E4E8"> input, </span><span style="color:#F97583">float*</span><span style="color:#E1E4E8"> block_esum, </span><span style="color:#F97583">float*</span><span style="color:#E1E4E8"> block_mx, </span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> N) {</span></span>
+<span class="line"><span style="color:#F97583">    constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> tile_width </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ThreadsPerBlock </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> BlockStride;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> base0 </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> blockIdx.x </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> tile_width </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> threadIdx.x;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> grid_step </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> gridDim.x </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> tile_width;</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> mx </span><span style="color:#F97583">=</span><span style="color:#F97583"> -</span><span style="color:#E1E4E8">FLT_MAX;</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> esum </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> base </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> base0; base </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> N; base </span><span style="color:#F97583">+=</span><span style="color:#E1E4E8"> grid_step) {</span></span>
+<span class="line"><span style="color:#F97583">        #pragma</span><span style="color:#B392F0"> unroll</span><span style="color:#E1E4E8"> 1</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> j </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; j </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> BlockStride; </span><span style="color:#F97583">++</span><span style="color:#E1E4E8">j) {</span></span>
+<span class="line"><span style="color:#F97583">            int</span><span style="color:#E1E4E8"> cur </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> base </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> j </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> ThreadsPerBlock;</span></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#E1E4E8"> (cur </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> N) {</span></span>
+<span class="line"><span style="color:#B392F0">                add_softmax_value</span><span style="color:#E1E4E8">(esum, mx, input[cur]);</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    block_reduce</span><span style="color:#E1E4E8">&#x3C;</span><span style="color:#B392F0">ThreadsPerBlock</span><span style="color:#E1E4E8">>(esum, mx);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (threadIdx.x </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        block_esum[blockIdx.x] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> esum;</span></span>
+<span class="line"><span style="color:#E1E4E8">        block_mx[blockIdx.x] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> mx;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">template</span><span style="color:#E1E4E8"> &#x3C;</span><span style="color:#F97583">int</span><span style="color:#B392F0"> BlockStride</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#B392F0"> ThreadsPerBlock</span><span style="color:#E1E4E8">></span></span>
+<span class="line"><span style="color:#E1E4E8">__global__ </span><span style="color:#F97583">void</span><span style="color:#B392F0"> softmax_pass2</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> float*</span><span style="color:#E1E4E8"> input_esum, </span><span style="color:#F97583">const</span><span style="color:#F97583"> float*</span><span style="color:#E1E4E8"> input_mx,</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> output_esum, </span><span style="color:#F97583">float*</span><span style="color:#E1E4E8"> output_mx, </span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> count) {</span></span>
+<span class="line"><span style="color:#F97583">    constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> tile_width </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ThreadsPerBlock </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> BlockStride;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> base0 </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> blockIdx.x </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> tile_width </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> threadIdx.x;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> grid_step </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> gridDim.x </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> tile_width;</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> mx </span><span style="color:#F97583">=</span><span style="color:#F97583"> -</span><span style="color:#E1E4E8">FLT_MAX;</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> esum </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> base </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> base0; base </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> count; base </span><span style="color:#F97583">+=</span><span style="color:#E1E4E8"> grid_step) {</span></span>
+<span class="line"><span style="color:#F97583">        #pragma</span><span style="color:#B392F0"> unroll</span><span style="color:#E1E4E8"> 1</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> j </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; j </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> BlockStride; </span><span style="color:#F97583">++</span><span style="color:#E1E4E8">j) {</span></span>
+<span class="line"><span style="color:#F97583">            int</span><span style="color:#E1E4E8"> cur </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> base </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> j </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> ThreadsPerBlock;</span></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#E1E4E8"> (cur </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> count) {</span></span>
+<span class="line"><span style="color:#B392F0">                combine_softmax_pair</span><span style="color:#E1E4E8">(esum, mx, input_esum[cur], input_mx[cur]);</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    block_reduce</span><span style="color:#E1E4E8">&#x3C;</span><span style="color:#B392F0">ThreadsPerBlock</span><span style="color:#E1E4E8">>(esum, mx);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (threadIdx.x </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        output_esum[blockIdx.x] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> esum;</span></span>
+<span class="line"><span style="color:#E1E4E8">        output_mx[blockIdx.x] </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> mx;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">template</span><span style="color:#E1E4E8"> &#x3C;</span><span style="color:#F97583">int</span><span style="color:#B392F0"> BlockStride</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#B392F0"> ThreadsPerBlock</span><span style="color:#E1E4E8">></span></span>
+<span class="line"><span style="color:#E1E4E8">__global__ </span><span style="color:#F97583">void</span><span style="color:#B392F0"> softmax_pass3</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> float*</span><span style="color:#E1E4E8"> input, </span><span style="color:#F97583">float*</span><span style="color:#E1E4E8"> output, </span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> N, </span><span style="color:#F97583">const</span><span style="color:#F97583"> float*</span><span style="color:#E1E4E8"> final_esum, </span><span style="color:#F97583">const</span><span style="color:#F97583"> float*</span><span style="color:#E1E4E8"> final_mx) {</span></span>
+<span class="line"><span style="color:#F97583">    constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> tile_width </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ThreadsPerBlock </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> BlockStride;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> base0 </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> blockIdx.x </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> tile_width </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> threadIdx.x;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> grid_step </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> gridDim.x </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> tile_width;</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> final_mx[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> esum </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> final_esum[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> base </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> base0; base </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> N; base </span><span style="color:#F97583">+=</span><span style="color:#E1E4E8"> grid_step) {</span></span>
+<span class="line"><span style="color:#F97583">        #pragma</span><span style="color:#B392F0"> unroll</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> j </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; j </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> BlockStride; </span><span style="color:#F97583">++</span><span style="color:#E1E4E8">j) {</span></span>
+<span class="line"><span style="color:#F97583">            int</span><span style="color:#E1E4E8"> cur </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> base </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> j </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> ThreadsPerBlock;</span></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#E1E4E8"> (cur </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> N) {</span></span>
+<span class="line"><span style="color:#E1E4E8">                output[cur] </span><span style="color:#F97583">=</span><span style="color:#B392F0"> __expf</span><span style="color:#E1E4E8">(input[cur] </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> mx) </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> esum;</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> int</span><span style="color:#B392F0"> ceil_div_int</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">int</span><span style="color:#FFAB70"> x</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> y</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> (x </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> y </span><span style="color:#F97583">-</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> y;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> int</span><span style="color:#B392F0"> tile_count_for</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">int</span><span style="color:#FFAB70"> count</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> block_stride</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> ceil_div_int</span><span style="color:#E1E4E8">(count, kThreadsPerBlock </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> block_stride);</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> int</span><span style="color:#B392F0"> grid_for_count</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">int</span><span style="color:#FFAB70"> count</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> block_stride</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> tile_cap</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> tiles </span><span style="color:#F97583">=</span><span style="color:#B392F0"> tile_count_for</span><span style="color:#E1E4E8">(count, block_stride);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (tile_cap </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#E1E4E8"> tiles </span><span style="color:#F97583">></span><span style="color:#E1E4E8"> tile_cap) {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> tile_cap;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> tiles </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> ?</span><span style="color:#E1E4E8"> tiles </span><span style="color:#F97583">:</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> bool</span><span style="color:#B392F0"> supported_stride</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">int</span><span style="color:#FFAB70"> stride</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    switch</span><span style="color:#E1E4E8"> (stride) {</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#79B8FF"> 4</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#79B8FF"> 8</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#79B8FF"> 16</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#79B8FF"> 32</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        case</span><span style="color:#79B8FF"> 64</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#79B8FF"> true</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">        default</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#79B8FF"> false</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">#define</span><span style="color:#B392F0"> DISPATCH_STRIDE</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">stride</span><span style="color:#E1E4E8">, ...) </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">    do</span><span style="color:#E1E4E8"> {                             </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">        switch</span><span style="color:#E1E4E8"> (stride) {            </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">            case</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">: { </span><span style="color:#F97583">constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kStride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">; </span><span style="color:#B392F0">__VA_ARGS__</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">break</span><span style="color:#E1E4E8">; }   </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">            case</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">: { </span><span style="color:#F97583">constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kStride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">; </span><span style="color:#B392F0">__VA_ARGS__</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">break</span><span style="color:#E1E4E8">; }   </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">            case</span><span style="color:#79B8FF"> 4</span><span style="color:#E1E4E8">: { </span><span style="color:#F97583">constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kStride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 4</span><span style="color:#E1E4E8">; </span><span style="color:#B392F0">__VA_ARGS__</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">break</span><span style="color:#E1E4E8">; }   </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">            case</span><span style="color:#79B8FF"> 8</span><span style="color:#E1E4E8">: { </span><span style="color:#F97583">constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kStride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 8</span><span style="color:#E1E4E8">; </span><span style="color:#B392F0">__VA_ARGS__</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">break</span><span style="color:#E1E4E8">; }   </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">            case</span><span style="color:#79B8FF"> 16</span><span style="color:#E1E4E8">: { </span><span style="color:#F97583">constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kStride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 16</span><span style="color:#E1E4E8">; </span><span style="color:#B392F0">__VA_ARGS__</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">break</span><span style="color:#E1E4E8">; } </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">            case</span><span style="color:#79B8FF"> 32</span><span style="color:#E1E4E8">: { </span><span style="color:#F97583">constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kStride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 32</span><span style="color:#E1E4E8">; </span><span style="color:#B392F0">__VA_ARGS__</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">break</span><span style="color:#E1E4E8">; } </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">            case</span><span style="color:#79B8FF"> 64</span><span style="color:#E1E4E8">: { </span><span style="color:#F97583">constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kStride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 64</span><span style="color:#E1E4E8">; </span><span style="color:#B392F0">__VA_ARGS__</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">break</span><span style="color:#E1E4E8">; } </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#F97583">            default</span><span style="color:#E1E4E8">:                                                      </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#B392F0">                std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Unsupported block stride: </span><span style="color:#79B8FF">%d\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, stride); </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#B392F0">                std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">exit</span><span style="color:#E1E4E8">(EXIT_FAILURE);                                  </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#E1E4E8">        }                                                                 </span><span style="color:#79B8FF">\</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">while</span><span style="color:#E1E4E8"> (</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> launch_pass1</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> float*</span><span style="color:#FFAB70"> input</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">float*</span><span style="color:#FFAB70"> block_esum</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">float*</span><span style="color:#FFAB70"> block_mx</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#FFAB70"> N</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> block_stride</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> grid_x</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">    DISPATCH_STRIDE</span><span style="color:#E1E4E8">(block_stride, {</span></span>
+<span class="line"><span style="color:#E1E4E8">        softmax_pass1</span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8">kStride, kThreadsPerBlock</span><span style="color:#F97583">></span></span>
+<span class="line"><span style="color:#F97583">            &#x3C;&#x3C;&#x3C;</span><span style="color:#E1E4E8">grid_x, kThreadsPerBlock</span><span style="color:#F97583">>>></span><span style="color:#E1E4E8">(input, block_esum, block_mx, N);</span></span>
+<span class="line"><span style="color:#E1E4E8">    });</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> launch_pass2</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> float*</span><span style="color:#FFAB70"> in_esum</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">const</span><span style="color:#F97583"> float*</span><span style="color:#FFAB70"> in_mx</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#FFAB70"> out_esum</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">float*</span><span style="color:#FFAB70"> out_mx</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#FFAB70"> count</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> block_stride</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> grid_x</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">    DISPATCH_STRIDE</span><span style="color:#E1E4E8">(block_stride, {</span></span>
+<span class="line"><span style="color:#E1E4E8">        softmax_pass2</span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8">kStride, kThreadsPerBlock</span><span style="color:#F97583">></span></span>
+<span class="line"><span style="color:#F97583">            &#x3C;&#x3C;&#x3C;</span><span style="color:#E1E4E8">grid_x, kThreadsPerBlock</span><span style="color:#F97583">>>></span><span style="color:#E1E4E8">(in_esum, in_mx, out_esum, out_mx, count);</span></span>
+<span class="line"><span style="color:#E1E4E8">    });</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> launch_pass3</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> float*</span><span style="color:#FFAB70"> input</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">float*</span><span style="color:#FFAB70"> output</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> N</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> float*</span><span style="color:#FFAB70"> final_esum</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">const</span><span style="color:#F97583"> float*</span><span style="color:#FFAB70"> final_mx</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#FFAB70"> block_stride</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> grid_x</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">    DISPATCH_STRIDE</span><span style="color:#E1E4E8">(block_stride, {</span></span>
+<span class="line"><span style="color:#E1E4E8">        softmax_pass3</span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8">kStride, kThreadsPerBlock</span><span style="color:#F97583">></span></span>
+<span class="line"><span style="color:#F97583">            &#x3C;&#x3C;&#x3C;</span><span style="color:#E1E4E8">grid_x, kThreadsPerBlock</span><span style="color:#F97583">>>></span><span style="color:#E1E4E8">(input, output, N, final_esum, final_mx);</span></span>
+<span class="line"><span style="color:#E1E4E8">    });</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> solve_grid_block</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> float*</span><span style="color:#FFAB70"> input</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#FFAB70"> output</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#FFAB70"> N</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#B392F0"> SolveConfig</span><span style="color:#F97583">&#x26;</span><span style="color:#FFAB70"> cfg</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#FFAB70"> scratch_esum_a</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#FFAB70"> scratch_mx_a</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#FFAB70"> scratch_esum_b</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#FFAB70"> scratch_mx_b</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass1_grid </span><span style="color:#F97583">=</span><span style="color:#B392F0"> grid_for_count</span><span style="color:#E1E4E8">(N, cfg.pass1_stride, cfg.pass1_tile_cap);</span></span>
+<span class="line"><span style="color:#B392F0">    launch_pass1</span><span style="color:#E1E4E8">(input, scratch_esum_a, scratch_mx_a, N, cfg.pass1_stride, pass1_grid);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> count </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> pass1_grid;</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> in_esum </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> scratch_esum_a;</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> in_mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> scratch_mx_a;</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> out_esum </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> scratch_esum_b;</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> out_mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> scratch_mx_b;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    while</span><span style="color:#E1E4E8"> (count </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">        int</span><span style="color:#E1E4E8"> reduce_grid </span><span style="color:#F97583">=</span><span style="color:#B392F0"> grid_for_count</span><span style="color:#E1E4E8">(count, cfg.pass2_stride, cfg.pass2_tile_cap);</span></span>
+<span class="line"><span style="color:#B392F0">        launch_pass2</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#E1E4E8">            in_esum, in_mx, out_esum, out_mx, count, cfg.pass2_stride, reduce_grid);</span></span>
+<span class="line"><span style="color:#E1E4E8">        count </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> reduce_grid;</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">swap</span><span style="color:#E1E4E8">(in_esum, out_esum);</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">swap</span><span style="color:#E1E4E8">(in_mx, out_mx);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass3_grid </span><span style="color:#F97583">=</span><span style="color:#B392F0"> grid_for_count</span><span style="color:#E1E4E8">(N, cfg.pass3_stride, cfg.pass3_tile_cap);</span></span>
+<span class="line"><span style="color:#B392F0">    launch_pass3</span><span style="color:#E1E4E8">(input, output, N, in_esum, in_mx, cfg.pass3_stride, pass3_grid);</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaDeviceSynchronize</span><span style="color:#E1E4E8">());</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> cpu_softmax</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">const</span><span style="color:#B392F0"> std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">vector</span><span style="color:#E1E4E8">&#x3C;</span><span style="color:#F97583">float</span><span style="color:#E1E4E8">></span><span style="color:#F97583">&#x26;</span><span style="color:#FFAB70"> input</span><span style="color:#E1E4E8">, </span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">vector</span><span style="color:#E1E4E8">&#x3C;</span><span style="color:#F97583">float</span><span style="color:#E1E4E8">></span><span style="color:#F97583">&#x26;</span><span style="color:#FFAB70"> output</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> mx </span><span style="color:#F97583">=</span><span style="color:#F97583"> *</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">max_element</span><span style="color:#E1E4E8">(input.</span><span style="color:#B392F0">begin</span><span style="color:#E1E4E8">(), input.</span><span style="color:#B392F0">end</span><span style="color:#E1E4E8">());</span></span>
+<span class="line"><span style="color:#F97583">    double</span><span style="color:#E1E4E8"> esum </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0.0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">float</span><span style="color:#E1E4E8"> x : input) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        esum </span><span style="color:#F97583">+=</span><span style="color:#B392F0"> std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">exp</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">static_cast&#x3C;double></span><span style="color:#E1E4E8">(x </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> mx));</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">size_t</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> input.</span><span style="color:#B392F0">size</span><span style="color:#E1E4E8">(); </span><span style="color:#F97583">++</span><span style="color:#E1E4E8">i) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        output[i] </span><span style="color:#F97583">=</span><span style="color:#F97583"> static_cast&#x3C;float></span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">exp</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">static_cast&#x3C;double></span><span style="color:#E1E4E8">(input[i] </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> mx)) </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> esum);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> fill_input</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">vector</span><span style="color:#E1E4E8">&#x3C;</span><span style="color:#F97583">float</span><span style="color:#E1E4E8">></span><span style="color:#F97583">&#x26;</span><span style="color:#FFAB70"> input</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> test_case</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> N </span><span style="color:#F97583">=</span><span style="color:#F97583"> static_cast&#x3C;int></span><span style="color:#E1E4E8">(input.</span><span style="color:#B392F0">size</span><span style="color:#E1E4E8">());</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> N; </span><span style="color:#F97583">++</span><span style="color:#E1E4E8">i) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        input[i] </span><span style="color:#F97583">=</span><span style="color:#B392F0"> input_value_at</span><span style="color:#E1E4E8">(i, N, test_case);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> print_cases</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"cases: sine, zeros, ramp, reverse, alternating, spike, random</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> int</span><span style="color:#B392F0"> parse_test_case</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">const</span><span style="color:#F97583"> char*</span><span style="color:#FFAB70"> test_case</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(test_case, </span><span style="color:#9ECBFF">"sine"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> kCaseSine;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(test_case, </span><span style="color:#9ECBFF">"zeros"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> kCaseZeros;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(test_case, </span><span style="color:#9ECBFF">"ramp"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> kCaseRamp;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(test_case, </span><span style="color:#9ECBFF">"reverse"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> kCaseReverse;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(test_case, </span><span style="color:#9ECBFF">"alternating"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> kCaseAlternating;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(test_case, </span><span style="color:#9ECBFF">"spike"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> kCaseSpike;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(test_case, </span><span style="color:#9ECBFF">"random"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">return</span><span style="color:#E1E4E8"> kCaseRandom;</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#F97583"> -</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> bool</span><span style="color:#B392F0"> parse_int_in_range</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">const</span><span style="color:#F97583"> char*</span><span style="color:#FFAB70"> text</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> min_value</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> max_value</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int*</span><span style="color:#FFAB70"> value</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    char*</span><span style="color:#E1E4E8"> end </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> nullptr</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    errno </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    double</span><span style="color:#E1E4E8"> parsed </span><span style="color:#F97583">=</span><span style="color:#B392F0"> std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strtod</span><span style="color:#E1E4E8">(text, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">end);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (errno </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> ||</span><span style="color:#E1E4E8"> end </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> text </span><span style="color:#F97583">||</span><span style="color:#F97583"> *</span><span style="color:#E1E4E8">end </span><span style="color:#F97583">!=</span><span style="color:#9ECBFF"> '</span><span style="color:#79B8FF">\0</span><span style="color:#9ECBFF">'</span><span style="color:#F97583"> ||</span><span style="color:#E1E4E8"> parsed </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> min_value </span><span style="color:#F97583">||</span><span style="color:#E1E4E8"> parsed </span><span style="color:#F97583">></span><span style="color:#E1E4E8"> max_value) {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> false</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    *</span><span style="color:#E1E4E8">value </span><span style="color:#F97583">=</span><span style="color:#F97583"> static_cast&#x3C;int></span><span style="color:#E1E4E8">(parsed);</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> true</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> bool</span><span style="color:#B392F0"> parse_positive_int</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">const</span><span style="color:#F97583"> char*</span><span style="color:#FFAB70"> text</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int*</span><span style="color:#FFAB70"> value</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> parse_int_in_range</span><span style="color:#E1E4E8">(text, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">, INT_MAX, value);</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> bool</span><span style="color:#B392F0"> parse_nonnegative_int</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">const</span><span style="color:#F97583"> char*</span><span style="color:#FFAB70"> text</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int*</span><span style="color:#FFAB70"> value</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> parse_int_in_range</span><span style="color:#E1E4E8">(text, </span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">, INT_MAX, value);</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> bool</span><span style="color:#B392F0"> parse_stride_arg</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">const</span><span style="color:#F97583"> char*</span><span style="color:#FFAB70"> text</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int*</span><span style="color:#FFAB70"> value</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#B392F0">parse_positive_int</span><span style="color:#E1E4E8">(text, value)) {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> false</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> supported_stride</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">value);</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> bool</span><span style="color:#B392F0"> parse_tile_cap_arg</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">const</span><span style="color:#F97583"> char*</span><span style="color:#FFAB70"> text</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int</span><span style="color:#FFAB70"> sm_count</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">int*</span><span style="color:#FFAB70"> value</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(text, </span><span style="color:#9ECBFF">"none"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> ||</span><span style="color:#B392F0"> std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(text, </span><span style="color:#9ECBFF">"unlimited"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> ||</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(text, </span><span style="color:#9ECBFF">"nogrid"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">        *</span><span style="color:#E1E4E8">value </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> true</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strncmp</span><span style="color:#E1E4E8">(text, </span><span style="color:#9ECBFF">"sm"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">        const</span><span style="color:#F97583"> char*</span><span style="color:#E1E4E8"> p </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> text </span><span style="color:#F97583">+</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">p </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> '*'</span><span style="color:#F97583"> ||</span><span style="color:#F97583"> *</span><span style="color:#E1E4E8">p </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> 'x'</span><span style="color:#F97583"> ||</span><span style="color:#F97583"> *</span><span style="color:#E1E4E8">p </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> 'X'</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">            ++</span><span style="color:#E1E4E8">p;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        int</span><span style="color:#E1E4E8"> multiplier </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">p </span><span style="color:#F97583">!=</span><span style="color:#9ECBFF"> '</span><span style="color:#79B8FF">\0</span><span style="color:#9ECBFF">'</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#B392F0">parse_positive_int</span><span style="color:#E1E4E8">(p, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">multiplier)) {</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#79B8FF"> false</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (sm_count </span><span style="color:#F97583">&#x3C;=</span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> ||</span><span style="color:#E1E4E8"> multiplier </span><span style="color:#F97583">></span><span style="color:#E1E4E8"> INT_MAX </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> sm_count) {</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#79B8FF"> false</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        *</span><span style="color:#E1E4E8">value </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> sm_count </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> multiplier;</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> true</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> parse_nonnegative_int</span><span style="color:#E1E4E8">(text, value);</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> print_usage</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">const</span><span style="color:#F97583"> char*</span><span style="color:#FFAB70"> argv0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#E1E4E8">        stderr,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "Usage: </span><span style="color:#79B8FF">%s</span><span style="color:#9ECBFF"> [N] [profile_iters] [warmup_iters] [case] [auto|validate|novalidate] "</span></span>
+<span class="line"><span style="color:#9ECBFF">        "[pass1_stride] [pass2_stride] [pass3_stride] [pass1_tile_cap] [pass2_tile_cap] [pass3_tile_cap]</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">        "  legacy form is also accepted: [pass1_stride] [pass3_stride] [pass1_tile_cap] [pass3_tile_cap] [pass2_tile_cap]</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">        "  strides supported: 1,2,4,8,16,32,64</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">        "  tile_cap: 0/none/unlimited/nogrid means no cap; sm4 or sm*4 means SM count times 4</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#9ECBFF">        "  defaults: pass1_stride=1 pass2_stride=32 pass3_stride=32 pass1_tile_cap=sm4 pass2_tile_cap=0 pass3_tile_cap=0</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">        argv0);</span></span>
+<span class="line"><span style="color:#B392F0">    print_cases</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">int</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">int</span><span style="color:#FFAB70"> argc</span><span style="color:#E1E4E8">, </span><span style="color:#F97583">char**</span><span style="color:#FFAB70"> argv</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> N </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 500000</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> profile_iters </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 100</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> warmup_iters </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 10</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> char*</span><span style="color:#E1E4E8"> test_case </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "sine"</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    const</span><span style="color:#F97583"> char*</span><span style="color:#E1E4E8"> validate_mode </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "auto"</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 1</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#B392F0">parse_positive_int</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">], </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">N)) {</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid N: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">        print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 2</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#B392F0">parse_positive_int</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">], </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">profile_iters)) {</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid profile_iters: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">        print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 3</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#B392F0">parse_nonnegative_int</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">], </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">warmup_iters)) {</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid warmup_iters: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">        print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 4</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        test_case </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> argv[</span><span style="color:#79B8FF">4</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 5</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        validate_mode </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> argv[</span><span style="color:#79B8FF">5</span><span style="color:#E1E4E8">];</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> test_case_id </span><span style="color:#F97583">=</span><span style="color:#B392F0"> parse_test_case</span><span style="color:#E1E4E8">(test_case);</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (test_case_id </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Unknown case: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, test_case);</span></span>
+<span class="line"><span style="color:#B392F0">        print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    constexpr</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8"> kAutoValidateMaxN </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 10000000</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    bool</span><span style="color:#E1E4E8"> validate </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> N </span><span style="color:#F97583">&#x3C;=</span><span style="color:#E1E4E8"> kAutoValidateMaxN;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(validate_mode, </span><span style="color:#9ECBFF">"validate"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        validate </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> true</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#F97583"> if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(validate_mode, </span><span style="color:#9ECBFF">"novalidate"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        validate </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> false</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#F97583"> if</span><span style="color:#E1E4E8"> (</span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">strcmp</span><span style="color:#E1E4E8">(validate_mode, </span><span style="color:#9ECBFF">"auto"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">!=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid validate mode: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, validate_mode);</span></span>
+<span class="line"><span style="color:#B392F0">        print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> device </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaSetDevice</span><span style="color:#E1E4E8">(device));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">    cudaDeviceProp prop{};</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaGetDeviceProperties</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">prop, device));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> sm_count </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> prop.multiProcessorCount;</span></span>
+<span class="line"><span style="color:#E1E4E8">    SolveConfig cfg{};</span></span>
+<span class="line"><span style="color:#E1E4E8">    cfg.pass1_stride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    cfg.pass2_stride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 32</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    cfg.pass3_stride </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 32</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    cfg.pass1_tile_cap </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> sm_count </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 4</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    cfg.pass2_tile_cap </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">    cfg.pass3_tile_cap </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 12</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#B392F0">parse_stride_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">6</span><span style="color:#E1E4E8">], </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass1_stride)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass1_stride: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">6</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#B392F0">parse_stride_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">7</span><span style="color:#E1E4E8">], </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass2_stride)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass2_stride: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">7</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#B392F0">parse_stride_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">8</span><span style="color:#E1E4E8">], </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass3_stride)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass3_stride: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">8</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#B392F0">parse_tile_cap_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">9</span><span style="color:#E1E4E8">], sm_count, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass1_tile_cap)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass1_tile_cap: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">9</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#B392F0">parse_tile_cap_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">10</span><span style="color:#E1E4E8">], sm_count, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass2_tile_cap)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass2_tile_cap: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">10</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#B392F0">parse_tile_cap_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">11</span><span style="color:#E1E4E8">], sm_count, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass3_tile_cap)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass3_tile_cap: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">11</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#F97583"> if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">&#x3C;=</span><span style="color:#79B8FF"> 11</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 6</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#B392F0">parse_stride_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">6</span><span style="color:#E1E4E8">], </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass1_stride)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass1_stride: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">6</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 7</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#B392F0">parse_stride_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">7</span><span style="color:#E1E4E8">], </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass3_stride)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass3_stride: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">7</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">        cfg.pass2_stride </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> cfg.pass3_stride;</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 8</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#B392F0">parse_tile_cap_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">8</span><span style="color:#E1E4E8">], sm_count, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass1_tile_cap)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass1_tile_cap: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">8</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 9</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#B392F0">parse_tile_cap_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">9</span><span style="color:#E1E4E8">], sm_count, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass3_tile_cap)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass3_tile_cap: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">9</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (argc </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 10</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#F97583"> !</span><span style="color:#B392F0">parse_tile_cap_arg</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">10</span><span style="color:#E1E4E8">], sm_count, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">cfg.pass2_tile_cap)) {</span></span>
+<span class="line"><span style="color:#B392F0">            std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fprintf</span><span style="color:#E1E4E8">(stderr, </span><span style="color:#9ECBFF">"Invalid pass2_tile_cap: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, argv[</span><span style="color:#79B8FF">10</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#B392F0">            print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#B392F0">        print_usage</span><span style="color:#E1E4E8">(argv[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">]);</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass1_tiles </span><span style="color:#F97583">=</span><span style="color:#B392F0"> tile_count_for</span><span style="color:#E1E4E8">(N, cfg.pass1_stride);</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass3_tiles </span><span style="color:#F97583">=</span><span style="color:#B392F0"> tile_count_for</span><span style="color:#E1E4E8">(N, cfg.pass3_stride);</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass1_grid </span><span style="color:#F97583">=</span><span style="color:#B392F0"> grid_for_count</span><span style="color:#E1E4E8">(N, cfg.pass1_stride, cfg.pass1_tile_cap);</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> pass3_grid </span><span style="color:#F97583">=</span><span style="color:#B392F0"> grid_for_count</span><span style="color:#E1E4E8">(N, cfg.pass3_stride, cfg.pass3_tile_cap);</span></span>
+<span class="line"><span style="color:#F97583">    int</span><span style="color:#E1E4E8"> max_summary_count </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> pass1_grid;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    size_t</span><span style="color:#E1E4E8"> bytes </span><span style="color:#F97583">=</span><span style="color:#F97583"> static_cast&#x3C;size_t></span><span style="color:#E1E4E8">(N) </span><span style="color:#F97583">*</span><span style="color:#F97583"> sizeof</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">float</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#F97583">    size_t</span><span style="color:#E1E4E8"> scratch_bytes </span><span style="color:#F97583">=</span><span style="color:#F97583"> static_cast&#x3C;size_t></span><span style="color:#E1E4E8">(max_summary_count) </span><span style="color:#F97583">*</span><span style="color:#F97583"> sizeof</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">float</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Device: </span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, prop.name);</span></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"N=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, profile_iters=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, warmup_iters=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, case=</span><span style="color:#79B8FF">%s</span><span style="color:#9ECBFF">, validate=</span><span style="color:#79B8FF">%s\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                N, profile_iters, warmup_iters, test_case, validate </span><span style="color:#F97583">?</span><span style="color:#9ECBFF"> "yes"</span><span style="color:#F97583"> :</span><span style="color:#9ECBFF"> "no"</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"threads_per_block=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, sms=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, max_warps_per_sm=</span><span style="color:#79B8FF">%d\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                kThreadsPerBlock, sm_count, prop.maxThreadsPerMultiProcessor </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> prop.warpSize);</span></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"pass1_stride=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, pass2_stride=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, pass3_stride=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, pass1_tile_cap=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, pass2_tile_cap=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, pass3_tile_cap=</span><span style="color:#79B8FF">%d\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                cfg.pass1_stride, cfg.pass2_stride, cfg.pass3_stride, cfg.pass1_tile_cap,</span></span>
+<span class="line"><span style="color:#E1E4E8">                cfg.pass2_tile_cap, cfg.pass3_tile_cap);</span></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"pass1_tiles=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, pass1_grid=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, pass3_tiles=</span><span style="color:#79B8FF">%d</span><span style="color:#9ECBFF">, pass3_grid=</span><span style="color:#79B8FF">%d\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                pass1_tiles, pass1_grid, pass3_tiles, pass3_grid);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    size_t</span><span style="color:#E1E4E8"> free_mem </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    size_t</span><span style="color:#E1E4E8"> total_mem </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaMemGetInfo</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">free_mem, </span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">total_mem));</span></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"device_memory_required_GiB=</span><span style="color:#79B8FF">%.3f</span><span style="color:#9ECBFF">, scratch_GiB=</span><span style="color:#79B8FF">%.6f</span><span style="color:#9ECBFF">, free_GiB=</span><span style="color:#79B8FF">%.3f</span><span style="color:#9ECBFF">, total_GiB=</span><span style="color:#79B8FF">%.3f\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">                static_cast&#x3C;double></span><span style="color:#E1E4E8">(bytes </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 2</span><span style="color:#F97583"> +</span><span style="color:#E1E4E8"> scratch_bytes </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 4</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> (</span><span style="color:#79B8FF">1024.0</span><span style="color:#F97583"> *</span><span style="color:#79B8FF"> 1024.0</span><span style="color:#F97583"> *</span><span style="color:#79B8FF"> 1024.0</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#F97583">                static_cast&#x3C;double></span><span style="color:#E1E4E8">(scratch_bytes </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 4</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> (</span><span style="color:#79B8FF">1024.0</span><span style="color:#F97583"> *</span><span style="color:#79B8FF"> 1024.0</span><span style="color:#F97583"> *</span><span style="color:#79B8FF"> 1024.0</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#F97583">                static_cast&#x3C;double></span><span style="color:#E1E4E8">(free_mem) </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> (</span><span style="color:#79B8FF">1024.0</span><span style="color:#F97583"> *</span><span style="color:#79B8FF"> 1024.0</span><span style="color:#F97583"> *</span><span style="color:#79B8FF"> 1024.0</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#F97583">                static_cast&#x3C;double></span><span style="color:#E1E4E8">(total_mem) </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> (</span><span style="color:#79B8FF">1024.0</span><span style="color:#F97583"> *</span><span style="color:#79B8FF"> 1024.0</span><span style="color:#F97583"> *</span><span style="color:#79B8FF"> 1024.0</span><span style="color:#E1E4E8">));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> d_input </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> nullptr</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> d_output </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> nullptr</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> scratch_esum_a </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> nullptr</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> scratch_mx_a </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> nullptr</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> scratch_esum_b </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> nullptr</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    float*</span><span style="color:#E1E4E8"> scratch_mx_b </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> nullptr</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaMalloc</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">d_input, bytes));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaMalloc</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">d_output, bytes));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaMalloc</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">scratch_esum_a, scratch_bytes));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaMalloc</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">scratch_mx_a, scratch_bytes));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaMalloc</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">scratch_esum_b, scratch_bytes));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaMalloc</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">scratch_mx_b, scratch_bytes));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::vector</span><span style="color:#F97583">&#x3C;float></span><span style="color:#E1E4E8"> h_input;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (validate) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        h_input.</span><span style="color:#B392F0">resize</span><span style="color:#E1E4E8">(N);</span></span>
+<span class="line"><span style="color:#B392F0">        fill_input</span><span style="color:#E1E4E8">(h_input, test_case_id);</span></span>
+<span class="line"><span style="color:#B392F0">        CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaMemcpy</span><span style="color:#E1E4E8">(d_input, h_input.</span><span style="color:#B392F0">data</span><span style="color:#E1E4E8">(), bytes, cudaMemcpyHostToDevice));</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        int</span><span style="color:#E1E4E8"> init_blocks </span><span style="color:#F97583">=</span><span style="color:#B392F0"> tile_count_for</span><span style="color:#E1E4E8">(N, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">        init_blocks </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> init_blocks </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 1024</span><span style="color:#F97583"> ?</span><span style="color:#E1E4E8"> init_blocks </span><span style="color:#F97583">:</span><span style="color:#79B8FF"> 1024</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">        init_input_kernel</span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8">kThreadsPerBlock</span><span style="color:#F97583">>&#x3C;&#x3C;&#x3C;</span><span style="color:#E1E4E8">init_blocks, kThreadsPerBlock</span><span style="color:#F97583">>>></span><span style="color:#E1E4E8">(d_input, N, test_case_id);</span></span>
+<span class="line"><span style="color:#B392F0">        CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaGetLastError</span><span style="color:#E1E4E8">());</span></span>
+<span class="line"><span style="color:#B392F0">        CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaDeviceSynchronize</span><span style="color:#E1E4E8">());</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> warmup_iters; </span><span style="color:#F97583">++</span><span style="color:#E1E4E8">i) {</span></span>
+<span class="line"><span style="color:#B392F0">        solve_grid_block</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#E1E4E8">            d_input, d_output, N, cfg, scratch_esum_a, scratch_mx_a, scratch_esum_b, scratch_mx_b);</span></span>
+<span class="line"><span style="color:#B392F0">        CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaGetLastError</span><span style="color:#E1E4E8">());</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">    cudaEvent_t</span><span style="color:#E1E4E8"> start, stop;</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaEventCreate</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">start));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaEventCreate</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">stop));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaProfilerStart</span><span style="color:#E1E4E8">());</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaEventRecord</span><span style="color:#E1E4E8">(start));</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> profile_iters; </span><span style="color:#F97583">++</span><span style="color:#E1E4E8">i) {</span></span>
+<span class="line"><span style="color:#B392F0">        solve_grid_block</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#E1E4E8">            d_input, d_output, N, cfg, scratch_esum_a, scratch_mx_a, scratch_esum_b, scratch_mx_b);</span></span>
+<span class="line"><span style="color:#B392F0">        CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaGetLastError</span><span style="color:#E1E4E8">());</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaEventRecord</span><span style="color:#E1E4E8">(stop));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaEventSynchronize</span><span style="color:#E1E4E8">(stop));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaProfilerStop</span><span style="color:#E1E4E8">());</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> elapsed_ms </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaEventElapsedTime</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">&#x26;</span><span style="color:#E1E4E8">elapsed_ms, start, stop));</span></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> avg_ms </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> elapsed_ms </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> profile_iters;</span></span>
+<span class="line"><span style="color:#F97583">    double</span><span style="color:#E1E4E8"> effective_bytes </span><span style="color:#F97583">=</span><span style="color:#F97583"> static_cast&#x3C;double></span><span style="color:#E1E4E8">(bytes) </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 3.0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    double</span><span style="color:#E1E4E8"> bandwidth_gbs </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> effective_bytes </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> (avg_ms </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 1.0</span><span style="color:#F97583">e-</span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">/</span><span style="color:#79B8FF"> 1.0</span><span style="color:#F97583">e</span><span style="color:#79B8FF">9</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"avg_time_ms=</span><span style="color:#79B8FF">%.6f\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, avg_ms);</span></span>
+<span class="line"><span style="color:#B392F0">    std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"approx_effective_bandwidth_GBps=</span><span style="color:#79B8FF">%.2f\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, bandwidth_gbs);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    float</span><span style="color:#E1E4E8"> max_abs_err </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (validate) {</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::vector</span><span style="color:#F97583">&#x3C;float></span><span style="color:#B392F0"> h_output</span><span style="color:#E1E4E8">(N, </span><span style="color:#79B8FF">0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::vector</span><span style="color:#F97583">&#x3C;float></span><span style="color:#B392F0"> h_ref</span><span style="color:#E1E4E8">(N, </span><span style="color:#79B8FF">0.0</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#B392F0">        CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaMemcpy</span><span style="color:#E1E4E8">(h_output.</span><span style="color:#B392F0">data</span><span style="color:#E1E4E8">(), d_output, bytes, cudaMemcpyDeviceToHost));</span></span>
+<span class="line"><span style="color:#B392F0">        cpu_softmax</span><span style="color:#E1E4E8">(h_input, h_ref);</span></span>
+<span class="line"><span style="color:#F97583">        double</span><span style="color:#E1E4E8"> sum </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0.0</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">int</span><span style="color:#E1E4E8"> i </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">; i </span><span style="color:#F97583">&#x3C;</span><span style="color:#E1E4E8"> N; </span><span style="color:#F97583">++</span><span style="color:#E1E4E8">i) {</span></span>
+<span class="line"><span style="color:#E1E4E8">            max_abs_err </span><span style="color:#F97583">=</span><span style="color:#B392F0"> std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">max</span><span style="color:#E1E4E8">(max_abs_err, </span><span style="color:#B392F0">std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">fabs</span><span style="color:#E1E4E8">(h_output[i] </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> h_ref[i]));</span></span>
+<span class="line"><span style="color:#E1E4E8">            sum </span><span style="color:#F97583">+=</span><span style="color:#E1E4E8"> h_output[i];</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"sum(output)=</span><span style="color:#79B8FF">%.9f</span><span style="color:#9ECBFF">, max_abs_err=</span><span style="color:#79B8FF">%.9g\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, sum, max_abs_err);</span></span>
+<span class="line"><span style="color:#E1E4E8">    } </span><span style="color:#F97583">else</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#B392F0">        std</span><span style="color:#E1E4E8">::</span><span style="color:#B392F0">printf</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"validation=skipped</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaEventDestroy</span><span style="color:#E1E4E8">(start));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaEventDestroy</span><span style="color:#E1E4E8">(stop));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaFree</span><span style="color:#E1E4E8">(d_input));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaFree</span><span style="color:#E1E4E8">(d_output));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaFree</span><span style="color:#E1E4E8">(scratch_esum_a));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaFree</span><span style="color:#E1E4E8">(scratch_mx_a));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaFree</span><span style="color:#E1E4E8">(scratch_esum_b));</span></span>
+<span class="line"><span style="color:#B392F0">    CUDA_CHECK</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">cudaFree</span><span style="color:#E1E4E8">(scratch_mx_b));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">!</span><span style="color:#E1E4E8">validate </span><span style="color:#F97583">||</span><span style="color:#E1E4E8"> max_abs_err </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 1</span><span style="color:#F97583">e-</span><span style="color:#79B8FF">5</span><span style="color:#F97583">f</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">?</span><span style="color:#E1E4E8"> EXIT_SUCCESS </span><span style="color:#F97583">:</span><span style="color:#E1E4E8"> EXIT_FAILURE;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre></details>
+<h1 id="实验">实验</h1>
+<h2 id="实验设置">实验设置</h2>
+<p>由于我比较在意</p>
+<ol>
+<li>BLOCK STRIDE</li>
+<li>BLOCK NUMBER</li>
+</ol>
+<p>因此我分别选择 BLOCK STRIDE = 1,8,16,32，BLOCK NUMBER(即GridX)有无上限(上限选择sm count * 4)来讨论在N(数据总量)=1e9时kernel的性能。</p>
+<p>同时，对于pass1，由于<code>add_softmax_value</code>有一串互相依赖的语句看起来无法使用ILP(Instruction-Level Parallelism)优化，因此我也对<code>add_softmax_value</code>上面的 <code>#pragma unroll</code>的存在是否对性能有影响做了测试</p>
+<details class="code-details" open><summary class="code-summary"><span class="code-summary-label">Code</span></summary><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="cpp"><code><span class="line"><span style="color:#6A737D">//互相依赖的语句</span></span>
+<span class="line"><span style="color:#F97583">float</span><span style="color:#E1E4E8"> new_mx </span><span style="color:#F97583">=</span><span style="color:#B392F0"> fmaxf</span><span style="color:#E1E4E8">(mx, val);</span></span>
+<span class="line"><span style="color:#E1E4E8">esum </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> esum </span><span style="color:#F97583">*</span><span style="color:#B392F0"> __expf</span><span style="color:#E1E4E8">(mx </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> new_mx) </span><span style="color:#F97583">+</span><span style="color:#B392F0"> __expf</span><span style="color:#E1E4E8">(val </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> new_mx);</span></span>
+<span class="line"><span style="color:#E1E4E8">mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> new_mx;</span></span></code></pre></details>
+<p>一些默认参数设置：</p>
+<h2 id="实验结果">实验结果</h2>
+<h3 id="pass1"><strong>pass1</strong></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>setting</th><th>ms/iter</th><th>SMA %</th><th>SMI %</th><th>Warps %</th><th>DRAM R %</th><th>DRAM W %</th><th>regs/thread</th><th>GridX</th><th>BlockX</th></tr></thead><tbody><tr><td>pass1_cap_sm4_s1_no_unroll</td><td>3.853</td><td>95.8</td><td>32.2</td><td>38.9</td><td>27.2</td><td>1.0</td><td>25</td><td>312</td><td>256</td></tr><tr><td>pass1_cap_sm4_s8_unroll</td><td>8.746</td><td>95.0</td><td>18.5</td><td>36.1</td><td>13.0</td><td>0.9</td><td>22</td><td>312</td><td>256</td></tr><tr><td>pass1_cap_sm4_s8_no_unroll</td><td>9.215</td><td>94.8</td><td>21.7</td><td>35.9</td><td>12.4</td><td>0.9</td><td>20</td><td>312</td><td>256</td></tr><tr><td>pass1_cap_sm4_s16_unroll</td><td>8.692</td><td>94.7</td><td>18.1</td><td>36.2</td><td>13.1</td><td>0.8</td><td>20</td><td>312</td><td>256</td></tr><tr><td>pass1_cap_sm4_s16_no_unroll</td><td>9.431</td><td>94.7</td><td>20.8</td><td>35.3</td><td>12.2</td><td>0.9</td><td>20</td><td>312</td><td>256</td></tr><tr><td>pass1_cap_sm4_s32_unroll</td><td>8.591</td><td>95.0</td><td>18.3</td><td>36.5</td><td>13.2</td><td>0.9</td><td>20</td><td>312</td><td>256</td></tr><tr><td>pass1_cap_sm4_s32_no_unroll</td><td>7.959</td><td>95.6</td><td>24.0</td><td>38.8</td><td>13.6</td><td>0.9</td><td>20</td><td>312</td><td>256</td></tr><tr><td>pass1_cap_0_s1_no_unroll</td><td>26.878</td><td>95.0</td><td>49.0</td><td>51.3</td><td>5.8</td><td>1.3</td><td>25</td><td>3906250</td><td>256</td></tr><tr><td>pass1_cap_0_s8_unroll</td><td>5.527</td><td>95.5</td><td>50.1</td><td>69.0</td><td>19.0</td><td>1.2</td><td>22</td><td>488282</td><td>256</td></tr><tr><td>pass1_cap_0_s8_no_unroll</td><td>7.530</td><td>94.7</td><td>42.2</td><td>57.3</td><td>15.2</td><td>1.3</td><td>20</td><td>488282</td><td>256</td></tr><tr><td>pass1_cap_0_s16_unroll</td><td>5.576</td><td>95.9</td><td>38.9</td><td>63.3</td><td>19.6</td><td>1.3</td><td>20</td><td>244141</td><td>256</td></tr><tr><td>pass1_cap_0_s16_no_unroll</td><td>5.277</td><td>96.5</td><td>47.1</td><td>68.6</td><td>20.1</td><td>1.3</td><td>20</td><td>244141</td><td>256</td></tr><tr><td>pass1_cap_0_s32_unroll</td><td>5.522</td><td>95.4</td><td>33.4</td><td>61.3</td><td>19.6</td><td>1.4</td><td>20</td><td>122071</td><td>256</td></tr><tr><td>pass1_cap_0_s32_no_unroll</td><td>5.696</td><td>94.0</td><td>38.3</td><td>61.8</td><td>19.2</td><td>1.4</td><td>20</td><td>122071</td><td>256</td></tr></tbody></table>
+<p>表格展示了所有pass1的抽样数据，其中pass1_cap_<em>的</em>代表有无GridX上限，0代表着没有上限，sm4代表上限是sm count * 4, pass1_cap_0_s<em>_…中的</em>代表的数字就是BLOCK STRIDE；ms/iter表示每次运行时间；SMA = SM Activity；SMI = SM Issue；Warps = Warps in the flight；DRAM R = DRAR READ; DRAM W = DRAM WRITE；regs/thread表示每个thread占用的寄存器数量；GridX表示每个Grid的block数量；BlockX表示每个block的thread数量</p>
+<blockquote>
+<p>SMA: 在采样周期内，至少有一个 warp 正在该 SM 上执行/发射指令的时间占比。<br>
+即， <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mtext>SM active cycles</mtext><mtext>elapsed cycles</mtext></mfrac></mrow><annotation encoding="application/x-tex">\frac{\text{SM active cycles}}{\text{elapsed cycles}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.4133em;vertical-align:-0.4811em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9322em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">elapsed cycles</span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.4461em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">SM active cycles</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4811em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span><br>
+其中，active cycle指 该 SM 上存在正在执行的 warp，scheduler 有工作可做，SM 没有完全 idle</p>
+</blockquote>
+<blockquote>
+<p>SMI：SM instruction issue slot 被真正用于发射 instruction 的周期占比。<br>
+即， <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mtext>cycles with issued instructions</mtext><mtext>total cycles</mtext></mfrac></mrow><annotation encoding="application/x-tex">\frac{\text{cycles with issued instructions}}{\text{total cycles}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.4133em;vertical-align:-0.4811em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9322em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total cycles</span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.4461em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">cycles with issued instructions</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4811em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></p>
+</blockquote>
+<blockquote>
+<p>warps%： 当前 SM 上 resident warps 相对于理论最大 warps 的占比。</p>
+</blockquote>
+<p>以下是对数据的一些解释</p>
+<p>Q：为什么cap=0比cap=sm4的SMI大很多？</p>
+<p>A： 没有cap时，GridX变得极多，系统里有海量independent warps，pass1中有如下互相依赖的语句</p>
+<details class="code-details" open><summary class="code-summary"><span class="code-summary-label">Code</span></summary><pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="cpp"><code><span class="line"><span style="color:#F97583">float</span><span style="color:#E1E4E8"> new_mx </span><span style="color:#F97583">=</span><span style="color:#B392F0"> fmaxf</span><span style="color:#E1E4E8">(mx, val);</span></span>
+<span class="line"><span style="color:#E1E4E8">esum </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> esum </span><span style="color:#F97583">*</span><span style="color:#B392F0"> __expf</span><span style="color:#E1E4E8">(mx </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> new_mx) </span><span style="color:#F97583">+</span><span style="color:#B392F0"> __expf</span><span style="color:#E1E4E8">(val </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> new_mx);</span></span>
+<span class="line"><span style="color:#E1E4E8">mx </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> new_mx;</span></span></code></pre></details>
+<p>很可能出现一个warp在等__expf结果时，scheduler可以立刻找到空闲的warp做事，大大提升latency hiding。也正因如此，cap=0总体比cap=sm4快很多</p>
+<p>Q： 为什么pass1_cap_0_s1_no_unroll这么慢？</p>
+<p>pass1_cap_0_s1_no_unroll的GridX过于巨大，block scheduling和launch overhead开始主导，反而开始变慢。</p>
+<p>其实，H20只可以驻留 SM_COUNT * max_warps_per_sm = 78 * 64 = 4992个warps，SM_COUNT * max_blocks_per_sm = 2496个blocks。cap = 0时的Gridx都远超过GPU simultaneously resident的能力，说明有大量的pending blocks。</p>
+<p>这时，BLOCK STRIDE越小，warp做事越少，block生命周期越短，block 结束后，SM 需要不断 dispatch 新的 block 进入 SM，并重新创建 resident warps。由于 s1 中每个 block 工作量极小，block turnover 会显著增加。</p>
+<p>虽然大量 independent warps 有助于 latency hiding，但这种收益并不是无限的。当 resident warp pool 已经足够填满 scheduler 后，继续增大 GridX 并不会进一步提升 issue efficiency；相反，block dispatch、block retirement 和 scheduling overhead 会逐渐占据更高比例，最终开始主导 runtime，导致性能劣化。</p>
+<p>这一点也可以被 pass1_cap_0_s1_no_unroll 的 Warps% 低于其他 cap=0 setting 所佐证：虽然所有 cap=0 setting 的 GridX 都远超 resident warp 上限，但 s1 中每个 block 生命周期更短，resident warp pool 更难长期维持稳定，因此平均 Warps in Flight % 反而更低。</p>
+<p>Q：为什么unroll优化效果不明显</p>
+<p>原因是pass1中相互依赖的语句无法受益于ILP，unroll只是把loop iteration展开让编译器更好优化，但有依赖的话总是无法ILP优化。</p>
+<p>cap=0时，pending block太多，cap=sm4时，block数量未达上限。<br>
+在BLOCK STRIDE=32是，N/256/32=122070，122070 / SM_COUNT = 1565，因此如果我们继续测试sm8，sm16，sm32，sm64，都会触碰到cap。</p>
+<p>由于max_blocks_per_sm=32， max_threads_per_sm=64，BlockX=256，SM能够驻留的block的最大值为min(SM_COUNT<em>max_threads_per_sm/256, SM_COUNT</em>max_blocks_per_sm) = 9，大于之前实验中设置的4。可以想象随着cap的增大，性能一定是先优化再劣化。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>setting</th><th>ms/iter</th><th>SMA %</th><th>SMI %</th><th>Warps %</th><th>DRAM R %</th><th>DRAM W %</th><th>regs/thread</th><th>GridX</th><th>BlockX</th></tr></thead><tbody><tr><td>pass1_cap_sm8_s32_no_unroll</td><td>5.343</td><td>93.3</td><td>35.6</td><td>61.2</td><td>20.1</td><td>1.1</td><td>20</td><td>624</td><td>256</td></tr><tr><td>pass1_cap_sm16_s32_no_unroll</td><td>5.002</td><td>95.5</td><td>37.9</td><td>64.6</td><td>21.4</td><td>1.0</td><td>20</td><td>1248</td><td>256</td></tr><tr><td>pass1_cap_sm32_s32_no_unroll</td><td>4.752</td><td>95.8</td><td>39.8</td><td>67.3</td><td>22.4</td><td>1.1</td><td>20</td><td>2496</td><td>256</td></tr><tr><td>pass1_cap_sm64_s32_no_unroll</td><td>4.500</td><td>95.4</td><td>41.8</td><td>70.0</td><td>23.2</td><td>1.2</td><td>20</td><td>4992</td><td>256</td></tr></tbody></table>
+<p>符合预期，性能随着cap的变大而变好，warps%上升，由于这轮实验的cap设置不算大，因此还没有到性能下降的地步。</p>
+<h3 id="pass2">pass2</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>setting</th><th>ms/iter</th><th>SMA %</th><th>SMI %</th><th>Warps %</th><th>DRAM R %</th><th>DRAM W %</th><th>regs/thread</th><th>GridX</th><th>BlockX</th><th>calls</th></tr></thead><tbody><tr><td>pass2_cap_sm4_s1</td><td>0.279</td><td>90.2</td><td>8.8</td><td>29.5</td><td>8.9</td><td>4.2</td><td>28</td><td>1/2/312</td><td>256</td><td>30</td></tr><tr><td>pass2_cap_sm4_s8</td><td>0.054</td><td>90.0</td><td>26.0</td><td>71.8</td><td>21.4</td><td>10.8</td><td>20</td><td>1/312</td><td>256</td><td>20</td></tr><tr><td>pass2_cap_sm4_s16</td><td>0.301</td><td>89.0</td><td>8.5</td><td>29.0</td><td>8.4</td><td>3.9</td><td>20</td><td>1/312</td><td>256</td><td>20</td></tr><tr><td>pass2_cap_sm4_s32</td><td>0.062</td><td>92.1</td><td>26.4</td><td>74.6</td><td>21.7</td><td>12.7</td><td>20</td><td>1/312</td><td>256</td><td>20</td></tr><tr><td>pass2_cap_0_s1</td><td>0.314</td><td>91.0</td><td>14.2</td><td>32.6</td><td>8.3</td><td>3.6</td><td>28</td><td>1/60/15259</td><td>256</td><td>30</td></tr><tr><td>pass2_cap_0_s8</td><td>0.041</td><td>87.0</td><td>23.0</td><td>81.0</td><td>15.0</td><td>10.0</td><td>20</td><td>1/1908</td><td>256</td><td>20</td></tr><tr><td>pass2_cap_0_s16</td><td>0.038</td><td>92.0</td><td>30.2</td><td>87.0</td><td>24.5</td><td>18.0</td><td>20</td><td>1/954</td><td>256</td><td>20</td></tr><tr><td>pass2_cap_0_s32</td><td>0.036</td><td>92.5</td><td>30.0</td><td>84.5</td><td>25.0</td><td>13.5</td><td>20</td><td>1/477</td><td>256</td><td>20</td></tr></tbody></table>
+<h3 id="pass3">pass3</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>setting</th><th>ms/iter</th><th>SMA %</th><th>SMI %</th><th>Warps %</th><th>DRAM R %</th><th>DRAM W %</th><th>regs/thread</th><th>GridX</th><th>BlockX</th></tr></thead><tbody><tr><td>pass3_cap_sm4_s1</td><td>9.458</td><td>95.7</td><td>12.0</td><td>38.7</td><td>11.6</td><td>10.7</td><td>25</td><td>312</td><td>256</td></tr><tr><td>pass3_cap_sm4_s8</td><td>12.289</td><td>93.9</td><td>11.0</td><td>33.3</td><td>9.9</td><td>8.6</td><td>26</td><td>312</td><td>256</td></tr><tr><td>pass3_cap_sm4_s16</td><td>11.222</td><td>94.5</td><td>11.7</td><td>35.0</td><td>10.4</td><td>9.3</td><td>28</td><td>312</td><td>256</td></tr><tr><td>pass3_cap_sm4_s32</td><td>12.422</td><td>94.1</td><td>10.8</td><td>33.1</td><td>9.8</td><td>8.5</td><td>28</td><td>312</td><td>256</td></tr><tr><td>pass3_cap_0_s1</td><td>13.971</td><td>94.4</td><td>30.6</td><td>50.2</td><td>9.2</td><td>7.9</td><td>25</td><td>3906250</td><td>256</td></tr><tr><td>pass3_cap_0_s8</td><td>7.035</td><td>95.1</td><td>21.0</td><td>59.5</td><td>15.7</td><td>14.6</td><td>26</td><td>488282</td><td>256</td></tr><tr><td>pass3_cap_0_s16</td><td>6.829</td><td>94.4</td><td>19.8</td><td>60.6</td><td>16.1</td><td>15.0</td><td>28</td><td>244141</td><td>256</td></tr><tr><td>pass3_cap_0_s32</td><td>7.695</td><td>94.0</td><td>17.1</td><td>56.0</td><td>14.7</td><td>13.4</td><td>28</td><td>122071</td><td>256</td></tr></tbody></table> </div> </article>  </main> </body></html>
