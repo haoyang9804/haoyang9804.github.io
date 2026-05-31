@@ -1,0 +1,39 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatDate } from "../../lib/dates";
+
+const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+
+<BaseLayout title="Blog" description="Blog posts by Haoyang Ma.">
+  <section class="page-heading">
+    <p class="eyebrow">Writing</p>
+    <h1>Blog</h1>
+  </section>
+
+  {
+    posts.length > 0 ? (
+      <ol class="post-list">
+        {posts.map((post) => (
+          <li class="post-card">
+            <a class="post-card-title" href={`/blog/${post.id}/`}>
+              {post.data.title}
+            </a>
+            <div class="post-card-meta">
+              <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+              {post.data.tags.length > 0 && <span>{post.data.tags.join(" / ")}</span>}
+            </div>
+            {post.data.description && <p>{post.data.description}</p>}
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <div class="empty-state">
+        <p>Writing will live here soon.</p>
+      </div>
+    )
+  }
+</BaseLayout>

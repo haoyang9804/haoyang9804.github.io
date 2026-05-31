@@ -1,0 +1,42 @@
+---
+import "katex/dist/katex.min.css";
+import "../styles/global.css";
+import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = SITE_TITLE,
+  description = SITE_DESCRIPTION
+} = Astro.props;
+
+const pageTitle = title === SITE_TITLE ? SITE_TITLE : `${title} - ${SITE_TITLE}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta
+      name="google-site-verification"
+      content="q8DtGMRIbR6QaJVsuBq_ia7dVYog6Z1o9Lwm4-AZP-w"
+    />
+    <link rel="icon" href="/Erwin_icon.png" />
+    <link rel="alternate" type="application/rss+xml" title="Haoyang Ma Blog" href="/rss.xml" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main class="main-container">
+      <slot />
+    </main>
+  </body>
+</html>
