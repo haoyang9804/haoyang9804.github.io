@@ -53,6 +53,39 @@ a:hover {
   margin: 0 auto;
 }
 
+.visit-stats {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--line-color);
+  border-radius: 8px;
+  bottom: 18px;
+  box-shadow: var(--shadow-lg);
+  color: var(--text-muted);
+  display: grid;
+  font-size: 0.86rem;
+  gap: 4px;
+  line-height: 1.4;
+  min-width: 160px;
+  padding: 10px 12px;
+  position: fixed;
+  right: 18px;
+  z-index: 10;
+}
+
+.visit-stats[hidden] {
+  display: none;
+}
+
+.visit-stat {
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.visit-stat strong {
+  color: var(--text-strong);
+  font-weight: 500;
+}
+
 h1 {
   color: var(--text-strong);
   font-family: var(--font-serif);

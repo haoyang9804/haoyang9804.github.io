@@ -33,15 +33,52 @@ const pageTitle = title === SITE_TITLE ? SITE_TITLE : `${title} - ${SITE_TITLE}`
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-    <script defer src="https://api.busuanzi.cc/static/3.6.9/busuanzi.min.js"></script>
   </head>
   <body>
     <main class="main-container">
       <slot />
     </main>
-    <div id="visit-stats" hidden aria-hidden="true">
-      <span id="busuanzi_site_pv"></span>
-      <span id="busuanzi_page_pv"></span>
+    <div id="visit-stats" class="visit-stats" hidden aria-hidden="true">
+      <div class="visit-stat">
+        <span>全站浏览量</span>
+        <strong id="busuanzi_site_pv">...</strong>
+      </div>
+      <div class="visit-stat">
+        <span>本页浏览量</span>
+        <strong id="busuanzi_page_pv">...</strong>
+      </div>
     </div>
+    <script>
+      (() => {
+        const currentUrl = new URL(window.location.href);
+        const showStats = currentUrl.searchParams.get("stats") === "1";
+        const statsPanel = document.querySelector("#visit-stats");
+
+        if (showStats && statsPanel instanceof HTMLElement) {
+          statsPanel.hidden = false;
+          statsPanel.setAttribute("aria-hidden", "false");
+        }
+
+        currentUrl.search = "";
+        currentUrl.hash = "";
+
+        fetch("https://cdn.busuanzi.cc/api.php", {
+          method: "POST",
+          body: JSON.stringify({
+            url: currentUrl.href,
+            referrer: document.referrer
+          })
+        })
+          .then((response) => response.json())
+          .then((stats) => {
+            for (const key in stats) {
+              document.querySelectorAll(`#${key}`).forEach((element) => {
+                element.textContent = stats[key];
+              });
+            }
+          })
+          .catch((error) => console.error(error));
+      })();
+    </script>
   </body>
 </html>
