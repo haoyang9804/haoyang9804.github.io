@@ -39,5 +39,9 @@ const pageTitle = title === SITE_TITLE ? SITE_TITLE : `${title} - ${SITE_TITLE}`
     <main class="main-container">
       <slot />
     </main>
+    <div id="visit-stats" hidden aria-hidden="true">
+      <span id="busuanzi_site_pv"></span>
+      <span id="busuanzi_page_pv"></span>
+    </div>
   </body>
 </html>

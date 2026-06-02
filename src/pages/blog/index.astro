@@ -12,9 +12,6 @@ const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
   <section class="page-heading">
     <p class="eyebrow">Writing</p>
     <h1>Blog</h1>
-    <p class="page-view-counter">
-      日志浏览量 <span id="busuanzi_page_pv">...</span>
-    </p>
   </section>
 
   {
