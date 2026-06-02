@@ -33,6 +33,9 @@ const { Content } = await render(post);
             <span>Updated {formatDate(post.data.updatedDate)}</span>
           )
         }
+        <span class="view-counter">
+          日志浏览量 <span id="busuanzi_page_pv">...</span>
+        </span>
       </div>
       {
         post.data.tags.length > 0 && (
