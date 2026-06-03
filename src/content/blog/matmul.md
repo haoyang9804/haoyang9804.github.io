@@ -285,10 +285,10 @@ $$
 AI
 &=
 \frac{
-  m_{\mathrm{block}} \times n_{\mathrm{tile}} \times k_{\mathrm{block} \times 2}
+ m\_block\_size \times n\_tile\_size \times k\_block\_size \times 2
 }{
-  (m_{\mathrm{block}} \times n_{\mathrm{tile}}
-  + k_{\mathrm{block}} \times n_{\mathrm{tile}})
+  (m\_block\_size \times n\_tile\_size
+  + k\_block\_size \times n\_tile\_size)
   \times 4
 } \\
 &=
@@ -343,6 +343,10 @@ for (int thread_row = 0; thread_row < thread_tile_m; ++thread_row) {
 这里，`thread_tile_m`表示的是一个thread要在$M$的维度上处理多少个数据。如下图所示，每个thread负责把矩阵$A$中存储在shared memory的矩阵块(粉色)的两行(粗黑框网格填充)和矩阵$B$中存储在shared memory的矩阵块(绿色)的两列(粗黑框网格填充)先load进入register，然后两两reduce。
 
 ![](../pics/matmul-register-tiling-compute.png)
+
+同时需要注意的是，register tiling并没有提升$AI$，它改变的是片上存储层级里的数据复用方式，提高了数据复用率。
+
+偏题一下，单个block内通过shared memory tiling能达到的HBM $AI$会受片上资源限制；想继续提高$AI$，需要增大输出tile，让一次load进来的矩阵块参与更多FMA，但这会很快受到shared memory、register和thread数量的约束。在这种情况下，可以通过 1) 换更小的数据类型； 2) 融合算子，避免中间结果回到HBM；3) 利用L2 cache的跨block复用等方式提升$AI$.
 
 代码如下：
 ```cpp
@@ -438,5 +442,57 @@ extern "C" void solve(const float* A, const float* B, float* C, int M, int N, in
 
 看一眼性能，进步了一大截 :)
 ![](../pics/matmul-register-tiling-timing.png)
+但还有进步空间。目前每个block的block size为
 
-但register tiling还有进步空间，因为它并没有改变$AI$，而是改变了片上存储层级里的数据复用方式：让同一次从shared memory运到register的数据参与多个accumulator的更新，而不是只reduce一次就被覆盖。
+$$
+\frac{\text{kTileM}}{\text{kThreadTileM}} \times \frac{\text{kTileK}}{\text{kThreadTileK}}=64
+$$
+
+如果把
+```cpp
+constexpr int kTileM = 32;
+constexpr int kTileN = 32; // reduce
+constexpr int kTileK = 32;
+constexpr int kThreadTileM = 4;
+constexpr int kThreadTileK = 4;
+```
+改为
+```cpp
+constexpr int kTileM = 128;
+constexpr int kTileN = 4; // reduce
+constexpr int kTileK = 128;
+constexpr int kThreadTileM = 8;
+constexpr int kThreadTileK = 8;
+```
+
+那么，$AI$提升，从$8$提升到$32$。 block size从64提升到256,也可以提升occupancy，SMA和SMI。
+做了这个简单的参数变化后，性能又提升一大截：
+![](../pics/matmul-register-tiling-timing2.png)
+
+小插曲：如果
+```cpp
+constexpr int kTileM = 128;
+constexpr int kTileN = 4; // reduce
+constexpr int kTileK = 128;
+constexpr int kThreadTileM = 4;
+constexpr int kThreadTileK = 4;
+```
+那么，AI还是$32$，但是block size为1024(已到单kernel上限)，且每个thread的计算量大大缩小。
+每个thread的计算量为 $\text{kThreadTileM}\times\text{kThreadTileK}\times\text{kTileN}$，因此计算量从256下降到了64。
+thread变多，但每个thread计算量变少。每个 thread 的计算变薄后，`__syncthreads()` 和 warp 调度这些固定开销更难被计算量摊销。
+
+这些问题导致了性能的大幅度劣化：
+![](../pics/matmul-register-tiling-timing3.png)
+
+还有一个很有趣的现象：
+
+在固定`kTileM=128`、`kTileK=128`、`kThreadTileM=8`、`kThreadTileK=8`时，继续调`kTileN`不会改变理想$AI$，因为每个block负责的输出tile大小没有变，`kTileN`只是在改变每轮reduce staging进shared memory的厚度。
+
+| kTileN | shared memory / block | 每轮每个thread的FMA数量 | 外层reduce轮数 | time(ms) |
+| ------ | --------------------- | ----------------------- | -------------- | -------- |
+| 4 | 4096 B | $8\times8\times4=256$ | $\lceil N/4\rceil$ | 49.93 |
+| 8 | 8192 B | $8\times8\times8=512$ | $\lceil N/8\rceil$ | 51.40 |
+| 16 | 16384 B | $8\times8\times16=1024$ | $\lceil N/16\rceil$ | 51.40 |
+| 32 | 32768 B | $8\times8\times32=2048$ | $\lceil N/32\rceil$ | 50.66 |
+
+按直觉，`kTileN`变大后，外层循环和`__syncthreads()`次数减少，似乎应该更快；但在这个kernel里，`kTileN=4`的每轮计算量已经足够摊销同步开销，而更大的`kTileN`并不会提升$AI$，只会增加shared memory占用和单轮展开后的调度压力，所以最终`kTileN=4`反而是更好的平衡点。
