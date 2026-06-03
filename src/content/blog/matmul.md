@@ -169,7 +169,10 @@ $$
 
 下图展示了单卡上各个存储模块的带宽和延迟。其中，顺序大量访问取决于带宽水平，随机零散访问取决于延迟。图中可见，HBM这两个维度都远弱于上层存储模块，且HBM是启动kernel后，矩阵被放置的位置。
 因此，从HBM读写往往是kernel性能的瓶颈。
-[GPU bandwidth hierarchy](../pics/GPU-bandwidth-hierarchy.png)
+<figure id="fig-gpu-bandwidth-hierarchy">
+  <img src="../pics/GPU-bandwidth-hierarchy.png" alt="GPU bandwidth hierarchy" />
+  <figcaption>GPU bandwidth hierarchy</figcaption>
+</figure>
 
 上述两个kernel当前的$AI$低的一大原因是从HBM load一个数据做一次计算。然而矩阵$A$中每一个数据都会和多个数据做计算，比如$A[i][j]$会和$B[j][:]$做乘法。
 因此，一个符合直觉的做法是把$A[i][j]$从HBM load到shared memory，在block内部的每个`thread id`对应的$B[j][k]$会从shared memory而非HBM load $A[i][j]$.
@@ -286,7 +289,7 @@ $$
 这个优化在性能上有大幅提升。
 ![shared-memory matmul LeetGPU timing](../pics/matmul-shared-memory-timing.png)
 
-但这还不够，这当前kernel的基础上稍作改动就可以再一次提高$AI$。
+一个题外话，上面的代码还有一些优化空间。
 我们看以下全局设置。
 ```cpp
 constexpr int kTileM = 32;
@@ -300,12 +303,16 @@ constexpr int kTileK = 32;
 | 64 | 111.5 |
 | 128 | 110.28 |
 | 256 | compilation failed: uses too much shared data |
+
 由上表可见，增大`kTileN`只能带来小幅性能提升：在`kTileM`和`kTileK`固定时，理想HBM AI并不会因为reduce tile变厚而线性提高，因为计算量和A/B tile load量都会随`kTileN`同时增长。
 它真正改善的是外层`k0`循环次数、`__syncthreads()`次数和load loop调度开销的摊销，所以32到128会变快但幅度有限。
 继续增大到256时，`a_tile[32][256] + b_tile[256][32]`需要约64KB shared memory，超过或逼近单block可用shared memory，因此编译失败。
 
 
-## 还能优化 -
+## 还能优化 - register tiling
+
+所谓shared memory tiling，就是把原本反复从HBM读取的数据，先搬到Shared Memory，再让很多线程重复使用。
+但根据[该图](#fig-gpu-bandwidth-hierarchy)
 
 <!-- 但这还不够，这当前kernel的基础上稍作改动就可以再一次提高$AI$。
 我们看以下全局设置
