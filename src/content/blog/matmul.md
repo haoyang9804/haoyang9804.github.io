@@ -169,10 +169,9 @@ $$
 
 下图展示了单卡上各个存储模块的带宽和延迟。其中，顺序大量访问取决于带宽水平，随机零散访问取决于延迟。图中可见，HBM这两个维度都远弱于上层存储模块，且HBM是启动kernel后，矩阵被放置的位置。
 因此，从HBM读写往往是kernel性能的瓶颈。
-<figure id="fig-gpu-bandwidth-hierarchy">
-  <img src="../pics/GPU-bandwidth-hierarchy.png" alt="GPU bandwidth hierarchy" />
-  <figcaption>GPU bandwidth hierarchy</figcaption>
-</figure>
+<span id="fig-gpu-bandwidth-hierarchy"></span>
+
+![GPU bandwidth hierarchy](../pics/GPU-bandwidth-hierarchy.png)
 
 上述两个kernel当前的$AI$低的一大原因是从HBM load一个数据做一次计算。然而矩阵$A$中每一个数据都会和多个数据做计算，比如$A[i][j]$会和$B[j][:]$做乘法。
 因此，一个符合直觉的做法是把$A[i][j]$从HBM load到shared memory，在block内部的每个`thread id`对应的$B[j][k]$会从shared memory而非HBM load $A[i][j]$.
