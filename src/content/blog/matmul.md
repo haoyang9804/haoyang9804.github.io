@@ -327,20 +327,116 @@ constexpr int kTileK = 32;
 所谓shared memory tiling，就是把原本反复从HBM读取的数据，先搬到Shared Memory，再让很多线程重复使用。
 但根据[该图](#fig-gpu-bandwidth-hierarchy), register的读写要比shared memory快得多。
 
-[shared memory tiling](#shared-memory-kernel-code)的代码在compute时，每一次从shared memory读取数据后，都只计算一个sum，也就是$A$的某一行的一部分和$B$的某一列的一部分的reduce (见[此图](#fig-matmul-shared-memory-compute))。
-这个操作的问题是，数据从shared memory运到register后，reduce一次就结束了；也就是说，每个thread读到的`A`/`B`值只更新自己当前负责的一个`sum`，没有在register里继续服务同一个thread的其他输出元素。
+[shared memory tiling](#shared-memory-kernel-code)的代码在compute时，每一次从shared memory读取数据到register后，都只计算一个sum，也就是$A$的某一行的一部分和$B$的某一列的一部分的reduce: `sum += a_tile[local_row][k] * b_tile[k][local_col];` (见[此图](#fig-matmul-shared-memory-compute))。之后，这部分register的数据就会被下一次运行覆盖，也就是说，register的数据复用很差。
 
-<!-- 但这还不够，这当前kernel的基础上稍作改动就可以再一次提高$AI$。
-我们看以下全局设置
+因此，一个符合直觉的做法是，对于load进register的数据，我们多用几次，多算几轮。为此，我们可以把`sum += a_tile[local_row][k] * b_tile[k][local_col];`升级为
 ```cpp
+for (int thread_row = 0; thread_row < thread_tile_m; ++thread_row) {
+    float a_value = a_tile[local_row_start + thread_row][k];
+    #pragma unroll
+    for (int thread_col = 0; thread_col < thread_tile_k; ++thread_col) {
+        accum[thread_row][thread_col] +=
+            a_value * b_tile[k][local_col_start + thread_col];
+    }
+}
+```          
+这里，`thread_tile_m`表示的是一个thread要在$M$的维度上处理多少个数据。如下图所示，每个thread负责把矩阵$A$中存储在shared memory的矩阵块(粉色)的两行(粗黑框网格填充)和矩阵$B$中存储在shared memory的矩阵块(绿色)的两列(粗黑框网格填充)先load进入register，然后两两reduce。
+
+![](../pics/matmul-register-tiling-compute.png)
+
+代码如下：
+```cpp
+#include <cuda_runtime.h>
+#include <algorithm>
+
 constexpr int kTileM = 32;
 constexpr int kTileN = 32; // reduce
 constexpr int kTileK = 32;
+constexpr int kThreadTileM = 4;
+constexpr int kThreadTileK = 4;
+
+__host__ __device__ static inline int ceil_div_int(int x, int y) {
+    return (x + y - 1) / y;
+}
+
+template <int m_block_size, int n_tile_size, int k_block_size, int thread_tile_m, int thread_tile_k>
+__global__ void matrix_multiplication_kernel(const float* A, const float* B, float* C, int M, int N, int K) {
+    static_assert(m_block_size % thread_tile_m == 0, "thread_tile_m must divide m_block_size");
+    static_assert(k_block_size % thread_tile_k == 0, "thread_tile_k must divide k_block_size");
+    __shared__ float a_tile[m_block_size][n_tile_size];
+    __shared__ float b_tile[n_tile_size][k_block_size];
+    int threads = blockDim.x * blockDim.y;
+    for (int c_row_block = blockIdx.y; c_row_block < ceil_div_int(M, m_block_size); c_row_block += gridDim.y) {
+        for (int c_col_block = blockIdx.x; c_col_block < ceil_div_int(K, k_block_size); c_col_block += gridDim.x) {
+           int local_row_start = threadIdx.y * thread_tile_m;
+           int local_col_start = threadIdx.x * thread_tile_k;
+           int tid = threadIdx.x + blockDim.x * threadIdx.y;
+           int local_A_block_size = m_block_size * n_tile_size;
+           int local_B_block_size = k_block_size * n_tile_size;
+           float accum[thread_tile_m][thread_tile_k] = {0.0f};
+           #pragma unroll
+           for (int n = 0; n < N; n += n_tile_size) {
+                // load into shared memory
+                for (int i = tid; i < local_A_block_size; i += threads) {
+                    int a_tile_col = i % n_tile_size;
+                    int a_tile_row = i / n_tile_size;
+                    int global_a_row = c_row_block * m_block_size + a_tile_row;
+                    int global_a_col = n + a_tile_col;
+                    a_tile[a_tile_row][a_tile_col] =
+                        (global_a_row < M && global_a_col < N) ? A[global_a_row * N + global_a_col] : 0.0f;
+                }
+                for (int i = tid; i < local_B_block_size; i += threads) {
+                    int b_tile_col = i % k_block_size;
+                    int b_tile_row = i / k_block_size;
+                    int global_b_row = n + b_tile_row;
+                    int global_b_col = c_col_block * k_block_size + b_tile_col;
+                    b_tile[b_tile_row][b_tile_col] =
+                        (global_b_row < N && global_b_col < K) ? B[global_b_row * K + global_b_col] : 0.0f;
+                }
+                __syncthreads();
+                // load into register and compute
+                #pragma unroll
+                for (int k = 0; k < n_tile_size; ++k) {
+                    #pragma unroll
+                    for (int thread_row = 0; thread_row < thread_tile_m; ++thread_row) {
+                        float a_value = a_tile[local_row_start + thread_row][k];
+                        #pragma unroll
+                        for (int thread_col = 0; thread_col < thread_tile_k; ++thread_col) {
+                            accum[thread_row][thread_col] +=
+                                a_value * b_tile[k][local_col_start + thread_col];
+                        }
+                    }
+                }
+                __syncthreads();
+           }
+           #pragma unroll
+           for (int thread_row = 0; thread_row < thread_tile_m; ++thread_row) {
+               int c_row = c_row_block * m_block_size + local_row_start + thread_row;
+               #pragma unroll
+               for (int thread_col = 0; thread_col < thread_tile_k; ++thread_col) {
+                   int c_col = c_col_block * k_block_size + local_col_start + thread_col;
+                   if (c_row < M && c_col < K) {
+                       C[c_row * K + c_col] = accum[thread_row][thread_col];
+                   }
+               }
+           }
+        }
+    }
+}
+
+// A, B, C are device pointers (i.e. pointers to memory on the GPU)
+extern "C" void solve(const float* A, const float* B, float* C, int M, int N, int K) {
+    dim3 threadsPerBlock(kTileK / kThreadTileK, kTileM / kThreadTileM);
+    dim3 blocksPerGrid(ceil_div_int(K, kTileK), ceil_div_int(M, kTileM));
+
+    matrix_multiplication_kernel<kTileM, kTileN, kTileK, kThreadTileM, kThreadTileK>
+        <<<blocksPerGrid, threadsPerBlock>>>(A, B, C, M, N, K);
+    cudaDeviceSynchronize();
+}
+
 ```
-如果换成
-```cpp
-constexpr int kTileM = 128;
-constexpr int kTileN = 4; // reduce
-constexpr int kTileK = 128;
-```
-那么，compute的FLOPS是没变的，$128\times 4\times 128 \times 2 = 32 \times 32 \times 32 \times 2$。但是从HBM搬运的bytes变少了，从$(32 \times 32 + 32 \times 32) \times 4=8192\text{bytes}$变成了$(128 \times 4 + 128 \times 4) \times 4=4096\text{bytes}$。因此$AI$翻倍 -->
+
+看一眼性能，进步了一大截 :)
+![](../pics/matmul-register-tiling-timing.png)
+
+但register tiling还有进步空间，因为它并没有改变$AI$，而是改变了片上存储层级里的数据复用方式：让同一次从shared memory运到register的数据参与多个accumulator的更新，而不是只reduce一次就被覆盖。
