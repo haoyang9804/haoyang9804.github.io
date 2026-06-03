@@ -181,7 +181,8 @@ $$
 ![shared memory tiling - load](../pics/matmul-shared-memory-load.png)
 假设一个block中`blockDim.x=2`, `$blockDim.y=2`，那么load完后的状态应该是
 ![](../pics/matmul-shared-memory-after-load.png)
-随后compute就在每次load后做局部计算即可。
+随后compute就在每次load后做局部计算即可，计算流程如图所示，每个`thread id`处理一个shared memory中矩阵块的reduce
+![](../pics/matmul-shared-memory-compute.png)
 
 代码如下：
 ```cpp
@@ -268,14 +269,15 @@ $$
 AI
 &=
 \frac{
-  m_{\mathrm{block}} \times n_{\mathrm{tile}} \times k_{\mathrm{block}}
+  m_{\mathrm{block}} \times n_{\mathrm{tile}} \times k_{\mathrm{block} \times 2}
 }{
-  m_{\mathrm{block}} \times n_{\mathrm{tile}}
-  + k_{\mathrm{block}} \times n_{\mathrm{tile}}
+  (m_{\mathrm{block}} \times n_{\mathrm{tile}}
+  + k_{\mathrm{block}} \times n_{\mathrm{tile}})
+  \times 4
 } \\
 &=
-\frac{32 \times 32 \times 32}{32 \times 32 + 32 \times 32} \\
-&= 16
+\frac{32 \times 32 \times 32 \times 2}{ (32 \times 32 + 32 \times 32) \times 4} \\
+&= 8
 \end{aligned}
 $$
 
@@ -284,4 +286,38 @@ $$
 这个优化在性能上有大幅提升。
 ![shared-memory matmul LeetGPU timing](../pics/matmul-shared-memory-timing.png)
 
+但这还不够，这当前kernel的基础上稍作改动就可以再一次提高$AI$。
+我们看以下全局设置。
+```cpp
+constexpr int kTileM = 32;
+constexpr int kTileN = 32; // reduce
+constexpr int kTileK = 32;
+```
+由于$kTileM*kTileK=1024$，已经到达了每个kernel的block size的上限。但`kTileN`可以继续上调，上调不会影响thread数量，也不会让每个thread做的计算变多，但单次从HBM load到shared memory的矩阵块变大。
+| kTileN | time(ms)
+|------|-----|
+| 32 | 113.7 |
+| 64 | 111.5 |
+| 128 | 110.28 |
+| 256 | compilation failed: uses too much shared data |
+由上表可见，增大`kTileN`只能带来小幅性能提升：在`kTileM`和`kTileK`固定时，理想HBM AI并不会因为reduce tile变厚而线性提高，因为计算量和A/B tile load量都会随`kTileN`同时增长。
+它真正改善的是外层`k0`循环次数、`__syncthreads()`次数和load loop调度开销的摊销，所以32到128会变快但幅度有限。
+继续增大到256时，`a_tile[32][256] + b_tile[256][32]`需要约64KB shared memory，超过或逼近单block可用shared memory，因此编译失败。
 
+
+## 还能优化 -
+
+<!-- 但这还不够，这当前kernel的基础上稍作改动就可以再一次提高$AI$。
+我们看以下全局设置
+```cpp
+constexpr int kTileM = 32;
+constexpr int kTileN = 32; // reduce
+constexpr int kTileK = 32;
+```
+如果换成
+```cpp
+constexpr int kTileM = 128;
+constexpr int kTileN = 4; // reduce
+constexpr int kTileK = 128;
+```
+那么，compute的FLOPS是没变的，$128\times 4\times 128 \times 2 = 32 \times 32 \times 32 \times 2$。但是从HBM搬运的bytes变少了，从$(32 \times 32 + 32 \times 32) \times 4=8192\text{bytes}$变成了$(128 \times 4 + 128 \times 4) \times 4=4096\text{bytes}$。因此$AI$翻倍 -->
