@@ -194,6 +194,8 @@ $$
 假设一个block中`blockDim.x=2`, `$blockDim.y=2`，那么load完后的状态应该是
 ![](../pics/matmul-shared-memory-after-load.png)
 随后compute就在每次load后做局部计算即可，计算流程如图所示，每个`thread id`处理一个shared memory中矩阵块的reduce
+
+<span id="fig-matmul-shared-memory-compute"></span>
 ![](../pics/matmul-shared-memory-compute.png)
 
 <span id="shared-memory-kernel-code"></span>
@@ -323,7 +325,10 @@ constexpr int kTileK = 32;
 ## 还能优化 - register tiling
 
 所谓shared memory tiling，就是把原本反复从HBM读取的数据，先搬到Shared Memory，再让很多线程重复使用。
-但根据[该图](#fig-gpu-bandwidth-hierarchy)
+但根据[该图](#fig-gpu-bandwidth-hierarchy), register的读写要比shared memory快得多。
+
+[shared memory tiling](#shared-memory-kernel-code)的代码在compute时，每一次从shared memory读取数据后，都只计算一个sum，也就是$A$的某一行的一部分和$B$的某一列的一部分的reduce (见[此图](#fig-matmul-shared-memory-compute))。
+这个操作的问题是，数据从shared memory运到register后，reduce一次就结束了；也就是说，每个thread读到的`A`/`B`值只更新自己当前负责的一个`sum`，没有在register里继续服务同一个thread的其他输出元素。
 
 <!-- 但这还不够，这当前kernel的基础上稍作改动就可以再一次提高$AI$。
 我们看以下全局设置
