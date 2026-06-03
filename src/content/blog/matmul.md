@@ -196,6 +196,8 @@ $$
 随后compute就在每次load后做局部计算即可，计算流程如图所示，每个`thread id`处理一个shared memory中矩阵块的reduce
 ![](../pics/matmul-shared-memory-compute.png)
 
+<span id="shared-memory-kernel-code"></span>
+
 代码如下：
 ```cpp
 #include <cuda_runtime.h>
