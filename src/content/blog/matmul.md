@@ -141,10 +141,20 @@ extern "C" void solve(const float* A, const float* B, float* C, int M, int N, in
 但从这个percentile来看，还有很大进步空间。
 
 ## 朴素的不行，得玩点花活 - shared memory tiling
-上面的kernel最大的问题是arithmetic intensity (AI) 不够
+上面的kernel最大的问题是arithmetic intensity (AI) 不够。
+
 $$
-AI = \frac{计算量}{\text{GPU 的 HBM（High Bandwidth Memory）读写的数据总量}}\ \ \text{FLOPs} / \text{Byte}
+\mathrm{AI}
+=
+\frac{
+  \text{计算量}
+}{
+  \text{GPU HBM 读写的数据总量}
+}
+\quad
+(\text{FLOPs}/\text{Byte})
 $$
+
 kernel中的compute代码
 ```go
 for (int k = 0; k < N; k += 1) {
