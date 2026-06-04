@@ -498,3 +498,10 @@ thread变多，但每个thread计算量变少。每个 thread 的计算变薄后
 | 32 | 32768 B | $8\times8\times32=2048$ | $\lceil N/32\rceil$ | 50.66 |
 
 按直觉，`kTileN`变大后，外层循环和`__syncthreads()`次数减少，似乎应该更快；但在这个kernel里，`kTileN=4`的每轮计算量已经足够摊销同步开销，而更大的`kTileN`并不会提升$AI$，只会增加shared memory占用和单轮展开后的调度压力，所以最终`kTileN=4`反而是更好的平衡点。
+
+## 继续优化 - float4
+
+结合上面的kernel，`float4`的核心收益是把A/B从HBM搬到shared memory、以及把C写回HBM时，把连续的4个`float`合成一次16B的vectorized memory access。
+它不会改变理论$AI$，因为总FLOPs和需要搬运的总bytes没有变，但可以减少load/store指令数量，让coalesced访问和内存事务更干净。
+对当前`128x4x128 + 8x8/thread`的kernel来说，`float4`主要补的是全局内存搬运和写回路径，而不是register tiling本身的accumulator复用。
+不过它不是免费优化，前提是地址16B对齐、连续4个`float`都在边界内，否则就需要fallback或额外边界处理。
