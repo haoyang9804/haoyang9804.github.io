@@ -501,7 +501,143 @@ thread变多，但每个thread计算量变少。每个 thread 的计算变薄后
 
 ## 继续优化 - float4
 
-结合上面的kernel，`float4`的核心收益是把A/B从HBM搬到shared memory、以及把C写回HBM时，把连续的4个`float`合成一次16B的vectorized memory access。
-它不会改变理论$AI$，因为总FLOPs和需要搬运的总bytes没有变，但可以减少load/store指令数量，让coalesced访问和内存事务更干净。
-对当前`128x4x128 + 8x8/thread`的kernel来说，`float4`主要补的是全局内存搬运和写回路径，而不是register tiling本身的accumulator复用。
-不过它不是免费优化，前提是地址16B对齐、连续4个`float`都在边界内，否则就需要fallback或额外边界处理。
+上述kernel读写都是用float，然而cuda有更高效的结局方案：`float4`。
+`float4`的核心收益是把A/B从HBM搬到shared memory、以及把C写回HBM时，把连续的4个`float`合成一次16B的vectorized memory access。
+下面就是把`float`读成`float4`的关键：
+```cpp
+#define FETCH_FLOAT4(value) (reinterpret_cast<float4*>(&(value))[0])
+#define FETCH_CONST_FLOAT4(value) (reinterpret_cast<const float4*>(&(value))[0])
+```
+使用时需要注意数组的列数必须可以被4整除，否则`float4`可能会越界。
+代码如下：
+```cpp
+#include <cuda_runtime.h>
+#include <algorithm>
+
+#define FETCH_FLOAT4(value) (reinterpret_cast<float4*>(&(value))[0])
+#define FETCH_CONST_FLOAT4(value) (reinterpret_cast<const float4*>(&(value))[0])
+
+constexpr int kTileM = 128;
+constexpr int kTileN = 4; // reduce
+constexpr int kTileK = 128;
+constexpr int kThreadTileM = 8;
+constexpr int kThreadTileK = 8;
+
+__host__ __device__ static inline int ceil_div_int(int x, int y) {
+    return (x + y - 1) / y;
+}
+
+template <int m_block_size, int n_tile_size, int k_block_size, int thread_tile_m, int thread_tile_k>
+__global__ void matrix_multiplication_kernel(const float* A, const float* B, float* C, int M, int N, int K) {
+    static_assert(m_block_size % thread_tile_m == 0, "thread_tile_m must divide m_block_size");
+    static_assert(k_block_size % thread_tile_k == 0, "thread_tile_k must divide k_block_size");
+    // 判断列数是否可以被4整除
+    static_assert(n_tile_size % 4 == 0, "n_tile_size must be divisible by 4 for float4 loads");
+    static_assert(k_block_size % 4 == 0, "k_block_size must be divisible by 4 for float4 loads");
+    static_assert(thread_tile_k % 4 == 0, "thread_tile_k must be divisible by 4 for float4 stores");
+    __shared__ float a_tile[m_block_size][n_tile_size];
+    __shared__ float b_tile[n_tile_size][k_block_size];
+    int threads = blockDim.x * blockDim.y;
+    bool a_vector_aligned = (N % 4 == 0);
+    bool b_vector_aligned = (K % 4 == 0);
+    for (int c_row_block = blockIdx.y; c_row_block < ceil_div_int(M, m_block_size); c_row_block += gridDim.y) {
+        for (int c_col_block = blockIdx.x; c_col_block < ceil_div_int(K, k_block_size); c_col_block += gridDim.x) {
+           int local_row_start = threadIdx.y * thread_tile_m;
+           int local_col_start = threadIdx.x * thread_tile_k;
+           int tid = threadIdx.x + blockDim.x * threadIdx.y;
+           int local_A_vector_count = m_block_size * (n_tile_size / 4);
+           int local_B_vector_count = n_tile_size * (k_block_size / 4);
+           float accum[thread_tile_m][thread_tile_k] = {0.0f};
+           #pragma unroll
+           for (int n = 0; n < N; n += n_tile_size) {
+                for (int i = tid; i < local_A_vector_count; i += threads) {
+                    int a_tile_col = (i % (n_tile_size / 4)) * 4;
+                    int a_tile_row = i / (n_tile_size / 4);
+                    int global_a_row = c_row_block * m_block_size + a_tile_row;
+                    int global_a_col = n + a_tile_col;
+                    if (a_vector_aligned && global_a_row < M && global_a_col + 3 < N) {
+                        FETCH_FLOAT4(a_tile[a_tile_row][a_tile_col]) =
+                            FETCH_CONST_FLOAT4(A[global_a_row * N + global_a_col]);
+                    } else {
+                        #pragma unroll
+                        for (int v = 0; v < 4; ++v) {
+                            int col = global_a_col + v;
+                            a_tile[a_tile_row][a_tile_col + v] =
+                                (global_a_row < M && col < N) ? A[global_a_row * N + col] : 0.0f;
+                        }
+                    }
+                }
+                for (int i = tid; i < local_B_vector_count; i += threads) {
+                    int b_tile_col = (i % (k_block_size / 4)) * 4;
+                    int b_tile_row = i / (k_block_size / 4);
+                    int global_b_row = n + b_tile_row;
+                    int global_b_col = c_col_block * k_block_size + b_tile_col;
+                    if (b_vector_aligned && global_b_row < N && global_b_col + 3 < K) {
+                        FETCH_FLOAT4(b_tile[b_tile_row][b_tile_col]) =
+                            FETCH_CONST_FLOAT4(B[global_b_row * K + global_b_col]);
+                    } else {
+                        #pragma unroll
+                        for (int v = 0; v < 4; ++v) {
+                            int col = global_b_col + v;
+                            b_tile[b_tile_row][b_tile_col + v] =
+                                (global_b_row < N && col < K) ? B[global_b_row * K + col] : 0.0f;
+                        }
+                    }
+                }
+                __syncthreads();
+                #pragma unroll
+                for (int k = 0; k < n_tile_size; ++k) {
+                    #pragma unroll
+                    for (int thread_row = 0; thread_row < thread_tile_m; ++thread_row) {
+                        float a_value = a_tile[local_row_start + thread_row][k];
+                        #pragma unroll
+                        for (int thread_col = 0; thread_col < thread_tile_k; ++thread_col) {
+                            accum[thread_row][thread_col] +=
+                                a_value * b_tile[k][local_col_start + thread_col];
+                        }
+                    }
+                }
+                __syncthreads();
+           }
+           #pragma unroll
+           for (int thread_row = 0; thread_row < thread_tile_m; ++thread_row) {
+               int c_row = c_row_block * m_block_size + local_row_start + thread_row;
+               #pragma unroll
+               for (int thread_col = 0; thread_col < thread_tile_k; thread_col += 4) {
+                   int c_col = c_col_block * k_block_size + local_col_start + thread_col;
+                   if (b_vector_aligned && c_row < M && c_col + 3 < K) {
+                       float4 c_values = make_float4(accum[thread_row][thread_col],
+                                                     accum[thread_row][thread_col + 1],
+                                                     accum[thread_row][thread_col + 2],
+                                                     accum[thread_row][thread_col + 3]);
+                       FETCH_FLOAT4(C[c_row * K + c_col]) = c_values;
+                   } else {
+                       #pragma unroll
+                       for (int v = 0; v < 4; ++v) {
+                           int col = c_col + v;
+                           if (c_row < M && col < K) {
+                               C[c_row * K + col] = accum[thread_row][thread_col + v];
+                           }
+                       }
+                   }
+               }
+           }
+        }
+    }
+}
+
+// A, B, C are device pointers (i.e. pointers to memory on the GPU)
+extern "C" void solve(const float* A, const float* B, float* C, int M, int N, int K) {
+    dim3 threadsPerBlock(kTileK / kThreadTileK, kTileM / kThreadTileM);
+    dim3 blocksPerGrid(ceil_div_int(K, kTileK), ceil_div_int(M, kTileM));
+
+    matrix_multiplication_kernel<kTileM, kTileN, kTileK, kThreadTileM, kThreadTileK>
+        <<<blocksPerGrid, threadsPerBlock>>>(A, B, C, M, N, K);
+    cudaDeviceSynchronize();
+}
+
+```
+性能上略有进步
+![](../pics/matmul-register-tiling-float4-timing.png)
+
+未完待续
