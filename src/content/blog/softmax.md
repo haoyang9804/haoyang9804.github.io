@@ -1,6 +1,6 @@
 ---
-title: "现代孔乙己 - softmax 的 N 种 CUDA 写法"
-description: "一次从 naive softmax 到多 kernel reduce 的 CUDA kernel 性能实验笔记。"
+title: "softmax.cu"
+description: ""
 pubDate: 2026-05-22
 tags: ["cuda", "llm-infra", "kernel"]
 draft: false
