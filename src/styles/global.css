@@ -295,6 +295,14 @@ h3 {
   margin-top: 0.35em;
 }
 
+.prose img {
+  display: block;
+  height: auto;
+  margin: 1.25em auto;
+  max-width: 100%;
+  width: 100%;
+}
+
 .prose table {
   border-collapse: collapse;
   display: block;
