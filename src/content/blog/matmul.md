@@ -166,15 +166,17 @@ for (int k = 0; k < N; k += 1) {
 $$
 AI = \frac{2N}{4N} = \frac{1}{2}
 $$
-这是一个很糟糕的数据。下表展示了近几代NV GPU的的$AI$。其中B200的peak tflops数据来自[8x NVIDIA Blackwell SXM](https://www.nvidia.com/en-us/data-center/hgx/?utm_source=chatgpt.com)的估算：8卡TF32 Tensor Core为18 PFLOPS with sparsity，因此，单卡约为 $18000/8=2250\ \text{TFLOPS}$
+这是一个很糟糕的数据。下表展示了近几代NV GPU的$AI$ critical。Tensor Core列使用TF32 Tensor Core with sparsity的peak，CUDA Core列使用FP32 peak。
 
-| GPU      |                                  Peak TFLOPS | HBM Bandwidth | $AI$ critical |
-| -------- | -------------------------------------------: | ------------: | ------------: |
-| A100 80G |   312 TFLOPS(TF32 Tensor Core with sparsity) |      2.0 TB/s |          ≈156 |
-| H100 SXM |  989 TFLOPS (TF32 Tensor Core with sparsity) |     3.35 TB/s |          ≈295 |
-| B200     | 2250 TFLOPS (TF32 Tensor Core with sparsity) |      8.0 TB/s |          ≈281 |
+| GPU      | TF32 Tensor Core Peak | FP32 CUDA Core Peak | HBM Bandwidth | Tensor Core $AI$ critical | CUDA Core $AI$ critical |
+| -------- | --------------------: | ------------------: | ------------: | ------------------------: | ----------------------: |
+| A100 80G SXM | 312 TFLOPS | 19.5 TFLOPS | 2.039 TB/s | ≈153 | ≈9.6 |
+| H100 SXM | 989 TFLOPS | 67 TFLOPS | 3.35 TB/s | ≈295 | ≈20 |
+| B200 SXM | 2250 TFLOPS | 75 TFLOPS | 8.0 TB/s | ≈281 | ≈9.4 |
 
-这些卡的$AI$都远高$\frac{1}{2}$，因此上述两个kernel是memory bound的。
+当前这个kernel使用的是CUDA Core上的FP32 FMA，并没有使用Tensor Core；因此分析它是否memory bound时，应该主要看上表中的CUDA Core $AI$ critical。
+
+即便只看CUDA Core $AI$ critical，这些卡也都远高$\frac{1}{2}$，因此上述两个kernel是memory bound的。
 在阐述如何提高$AI$以及为什么要提高$AI$前，我们先看看$AI$代表着啥。
 
 下图展示了单卡上各个存储模块的带宽和延迟。其中，顺序大量访问取决于带宽水平，随机零散访问取决于延迟。图中可见，HBM这两个维度都远弱于上层存储模块，且HBM是启动kernel后，矩阵被放置的位置。
